@@ -1,0 +1,1422 @@
+const STORE_KEY = 'json_quiz_v1';
+const $ = (id) => document.getElementById(id);
+
+/* ---------- Сховище (localStorage з запасним варіантом у пам'яті) ---------- */
+let memoryStore = null;
+
+function saveState() {
+  const raw = JSON.stringify(state);
+  let saved = true;
+  try {
+    localStorage.setItem(STORE_KEY, raw);
+  } catch (e) {
+    /* Найчастіше — переповнена пам'ять браузера (великі зображення). Старий зліпок прибираємо, щоб він не підмінив поточний тест */
+    memoryStore = raw;
+    saved = false;
+    try { localStorage.removeItem(STORE_KEY); } catch (e2) {}
+  }
+  const warn = $('save-warning');
+  if (warn) warn.hidden = saved;
+}
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  try { return memoryStore ? JSON.parse(memoryStore) : null; } catch (e) { return null; }
+}
+function clearState() {
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  memoryStore = null;
+}
+
+/* ---------- Псевдоніми типів (альтернативні назви в JSON) ---------- */
+const TYPE_ALIASES = {
+  'multiple-choices': 'multiple-choice',
+  'match-choices': 'matching-question',
+  'matching': 'matching-question'
+};
+
+/* ---------- Допоміжні функції ---------- */
+const NONE = '(без відповіді)';
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const opt = (q, k) => `${k} "${q.choices[k]}"`;
+const mt = (q, mk) => `${mk} "${q.matches[mk]}"`;
+const nonEmptyObj = (v) => isObj(v) && Object.keys(v).length > 0;
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function choiceButton(key, text, selected, onClick) {
+  const btn = el('button', 'choice' + (selected ? ' selected' : ''));
+  btn.append(el('b', null, key), el('span', null, text));
+  btn.onclick = onClick;
+  return btn;
+}
+function sortByChoices(q, keys) {
+  const order = Object.keys(q.choices);
+  return [...keys].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+}
+const multiRange = (q) => ({ min: q.min ?? 1, max: q.max ?? 3 });
+
+/* Послідовність: відповідь — масив, де індекс = позиція, а null = вільна позиція. Хвостові null відкидаємо */
+function trimSeq(arr) {
+  const r = [...arr];
+  while (r.length && (r[r.length - 1] === null || r[r.length - 1] === undefined)) r.pop();
+  return r;
+}
+/* Латинські літери, схожі на кириличні, щоб "A" і "А" не різнилися при ручному введенні */
+const LOOKALIKE = { a: 'а', b: 'в', c: 'с', e: 'е', h: 'н', i: 'і', k: 'к', m: 'м', o: 'о', p: 'р', t: 'т', x: 'х', y: 'у' };
+const canon = (str) => String(str).toLowerCase().replace(/[a-z]/g, (ch) => LOOKALIKE[ch] || ch);
+function resolveKey(q, token) {
+  if (has(q.choices, token)) return token;
+  const want = canon(token);
+  const hits = Object.keys(q.choices).filter((k) => canon(k) === want);
+  return hits.length === 1 ? hits[0] : null;
+}
+/* "2 1 3", "2, 1, 3", "2 → 1 → 3", "2 - 1" (прочерк = вільна позиція) */
+function parseOrder(q, text) {
+  const tokens = text.replace(/->|=>|→|>/g, ' ').split(/[\s,;]+/).filter(Boolean);
+  if (!tokens.length) return { arr: [] };
+  const n = Object.keys(q.choices).length;
+  if (tokens.length > n) return { error: `Забагато пунктів: у питанні їх лише ${n}.` };
+  const arr = [];
+  const seen = new Set();
+  for (const tok of tokens) {
+    if (/^[-–—_.?]+$/.test(tok)) { arr.push(null); continue; }
+    const k = resolveKey(q, tok);
+    if (k === null) return { error: `Невідомий пункт "${tok}".` };
+    if (seen.has(k)) return { error: `Пункт "${k}" вказано двічі.` };
+    seen.add(k);
+    arr.push(k);
+  }
+  return { arr: trimSeq(arr) };
+}
+
+/* Підпис відповіді для порівняння (порожні відповіді вважаються однаковими) */
+function sig(a) {
+  if (a === undefined || a === null) return 'null';
+  if (Array.isArray(a)) return a.length ? JSON.stringify(a) : 'null';
+  if (isObj(a)) {
+    const keys = Object.keys(a).sort();
+    return keys.length ? JSON.stringify(keys.map((k) => [k, a[k]])) : 'null';
+  }
+  return JSON.stringify(a);
+}
+function sameAnswer(q, a, b) {
+  const norm = (x) => (q.type === 'multiple-choice' && Array.isArray(x) ? [...x].sort() : x);
+  return sig(norm(a)) === sig(norm(b));
+}
+
+/* ---------- Підсвітка в режимі роботи над помилками ---------- */
+function tagEl(cls, text) { return el('span', 'tag ' + cls, text); }
+
+/* f = { correct, old, now }: чи правильний варіант, чи був обраний раніше, чи обраний зараз.
+   reveal=false — правильність не показується: лише нейтральна «стара» і бурштинова «нова» відповідь */
+function markChoice(btn, f, reveal) {
+  const tags = el('span', 'tags');
+  if (reveal) {
+    /* зелений — правильний варіант; червоний — неправильний, який обрано зараз або був обраний раніше */
+    if (f.correct) btn.classList.add('rv-ok');
+    else if (f.old || f.now) btn.classList.add('rv-bad');
+    if (f.correct) tags.append(tagEl('ok', '✓ правильно'));
+  } else if (f.old) {
+    btn.classList.add('rv-old');
+  }
+  if (f.now && !f.old) btn.classList.add('rv-new');
+
+  const oldCls = !reveal ? 'neutral' : f.correct ? 'ok' : 'bad';
+  if (f.old && f.now) tags.append(tagEl(oldCls, 'твоя'));
+  else if (f.old) tags.append(tagEl(oldCls, 'стара'));
+  else if (f.now) tags.append(tagEl('new', 'нова'));
+  if (tags.children.length) btn.append(tags);
+}
+
+/* Перевірка відповіді у звичайному режимі: правильний — зелений, ваш неправильний — червоний */
+function markCheck(btn, f) {
+  const tags = el('span', 'tags');
+  if (f.correct) {
+    btn.classList.add('rv-ok');
+    tags.append(tagEl('ok', '✓ правильно'));
+  } else if (f.now) {
+    btn.classList.add('rv-bad');
+    tags.append(tagEl('bad', '✗ твоя'));
+  }
+  if (tags.children.length) btn.append(tags);
+}
+
+/* ---------- Обробники типів питань ----------
+   Кожен тип має: validate(q) -> null | текст помилки,
+   render(q, answer, container, onAnswer, rv, chk) — rv = { old, reveal } у режимі помилок, інакше null;
+   chk = true, коли відповідь на питання показано (звичайний режим),
+   isAnswered(q, a), isCorrect(q, a),
+   text(q, a) -> текст самої відповіді (без ✅/❌), працює і для q.correct,
+   short(q, a) -> стисла відповідь для копіювання («А», «А, В», «А-2, Б-1», «2 → 1 → 3»), «-» якщо відповіді немає,
+   format(q, a) -> рядок для результатів */
+const handlers = {
+
+  /* Один варіант: choices + correct: "A" */
+  'single-choice': {
+    validate(q) {
+      if (!nonEmptyObj(q.choices)) return 'потрібне поле "choices" (об\'єкт).';
+      if (typeof q.correct !== 'string' || !has(q.choices, q.correct))
+        return '"correct" має бути ключем з "choices".';
+      return null;
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      box.innerHTML = '';
+      Object.entries(q.choices).forEach(([k, t]) => {
+        const btn = choiceButton(k, t, answer === k, () => onAnswer(k));
+        if (rv) markChoice(btn, { correct: k === q.correct, old: rv.old === k, now: answer === k }, rv.reveal);
+        else if (chk) markCheck(btn, { correct: k === q.correct, now: answer === k });
+        box.appendChild(btn);
+      });
+    },
+    isAnswered: (q, a) => typeof a === 'string',
+    isCorrect: (q, a) => a === q.correct,
+    text: (q, a) => (typeof a === 'string' && has(q.choices, a) ? opt(q, a) : NONE),
+    short: (q, a) => (typeof a === 'string' && has(q.choices, a) ? a : '-'),
+    format(q, a) {
+      const right = opt(q, q.correct);
+      if (a === q.correct) return `${right} ✅`;
+      const mine = typeof a === 'string' && has(q.choices, a) ? opt(q, a) : NONE;
+      return `${mine} ❌ - ${right}`;
+    }
+  },
+
+  /* Кілька варіантів: choices + correct: ["A","C"] + необов'язкові min (1) / max (3) */
+  'multiple-choice': {
+    validate(q) {
+      if (!nonEmptyObj(q.choices)) return 'потрібне поле "choices" (об\'єкт).';
+      const { min, max } = multiRange(q);
+      if (!Number.isInteger(min) || !Number.isInteger(max) || min < 1 || max < min)
+        return '"min" і "max" мають бути цілими числами, 1 ≤ min ≤ max.';
+      if (!Array.isArray(q.correct) || !q.correct.length)
+        return '"correct" має бути непорожнім списком ключів, наприклад ["A", "C"].';
+      if (q.correct.some((k) => !has(q.choices, k)) || new Set(q.correct).size !== q.correct.length)
+        return '"correct" містить неіснуючі або повторювані ключі.';
+      if (q.correct.length < min || q.correct.length > max)
+        return `правильних відповідей ${q.correct.length}, а дозволено від ${min} до ${max} — вкажіть "min"/"max" явно.`;
+      return null;
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      const { min, max } = multiRange(q);
+      const sel = Array.isArray(answer) ? answer : [];
+      const oldSel = rv && Array.isArray(rv.old) ? rv.old : [];
+      box.innerHTML = '';
+      box.appendChild(el('p', 'hint',
+        (min === max ? `Оберіть ${min}` : `Оберіть від ${min} до ${max} варіантів`) +
+        ` (обрано: ${sel.length})`));
+      Object.entries(q.choices).forEach(([k, t]) => {
+        const on = sel.includes(k);
+        const btn = choiceButton(k, t, on, () => onAnswer(on ? sel.filter((x) => x !== k) : [...sel, k]));
+        if (!on && sel.length >= max) btn.disabled = true;
+        if (rv) markChoice(btn, { correct: q.correct.includes(k), old: oldSel.includes(k), now: on }, rv.reveal);
+        else if (chk) markCheck(btn, { correct: q.correct.includes(k), now: on });
+        box.appendChild(btn);
+      });
+    },
+    isAnswered: (q, a) => Array.isArray(a) && a.length >= multiRange(q).min,
+    isCorrect: (q, a) =>
+      Array.isArray(a) && a.length === q.correct.length && q.correct.every((k) => a.includes(k)),
+    text(q, a) {
+      const keys = Array.isArray(a) ? a.filter((k) => has(q.choices, k)) : [];
+      return keys.length ? sortByChoices(q, keys).map((k) => opt(q, k)).join(', ') : NONE;
+    },
+    short(q, a) {
+      const keys = Array.isArray(a) ? a.filter((k) => has(q.choices, k)) : [];
+      return keys.length ? sortByChoices(q, keys).join(', ') : '-';
+    },
+    format(q, a) {
+      const list = (keys) => sortByChoices(q, keys).map((k) => opt(q, k)).join(', ');
+      const right = list(q.correct);
+      if (this.isCorrect(q, a)) return `${right} ✅`;
+      const mine = Array.isArray(a) && a.length ? list(a.filter((k) => has(q.choices, k))) : NONE;
+      return `${mine} ❌ - ${right}`;
+    }
+  },
+
+  /* Відповідності: choices (ліва колонка), matches (права), correct: {"A": "2", "B": "1"} */
+  'matching-question': {
+    validate(q) {
+      if (!nonEmptyObj(q.choices)) return '"choices" має бути непорожнім об\'єктом (ліва колонка).';
+      if (!nonEmptyObj(q.matches)) return '"matches" має бути непорожнім об\'єктом (права колонка).';
+      if (!isObj(q.correct)) return '"correct" має бути об\'єктом виду {"A": "1", "B": "2"}.';
+      for (const k of Object.keys(q.choices)) {
+        if (!has(q.correct, k) || !has(q.matches, String(q.correct[k])))
+          return `для "${k}" у "correct" немає коректного ключа з "matches".`;
+      }
+      return null;
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      const ans = isObj(answer) ? answer : {};
+      const oldAns = rv && isObj(rv.old) ? rv.old : {};
+      box.innerHTML = '';
+      box.appendChild(el('p', 'hint', 'Підберіть до кожного пункту відповідну пару.'));
+      Object.entries(q.choices).forEach(([k, t]) => {
+        const row = el('div', 'match-row');
+        const label = el('div', 'match-label');
+        label.append(el('b', null, k), el('span', null, t));
+        const select = document.createElement('select');
+        select.add(new Option('— обрати —', ''));
+        Object.entries(q.matches).forEach(([mk, mtxt]) => select.add(new Option(`${mk}. ${mtxt}`, mk)));
+        select.value = has(ans, k) ? ans[k] : '';
+        select.onchange = () => {
+          const next = { ...ans };
+          if (select.value === '') delete next[k]; else next[k] = select.value;
+          onAnswer(next);
+        };
+        row.append(label, select);
+
+        if (rv) {
+          const right = String(q.correct[k]);
+          const oldV = has(oldAns, k) ? String(oldAns[k]) : '';
+          const nowV = has(ans, k) ? String(ans[k]) : '';
+          const show = (v) => (v && has(q.matches, v) ? mt(q, v) : NONE);
+          const changed = nowV !== oldV;
+          const notes = el('div', 'rv-notes');
+          if (rv.reveal) {
+            /* Колір рядка — за поточною відповіддю: виправили на правильну → зелений, ні → червоний */
+            const nowOk = nowV === right;
+            if (nowOk) row.classList.add('rv-ok');
+            else if (nowV) row.classList.add('rv-bad');
+            notes.append(el('div', 'ok', `Правильно: ${show(right)}`));
+            if (changed) {
+              notes.append(el('div', oldV === right ? 'ok' : 'bad', `Стара відповідь: ${show(oldV)}`));
+              notes.append(el('div', nowOk ? 'ok' : 'bad', `Нова відповідь: ${show(nowV)}`));
+            }
+          } else if (changed) {
+            notes.append(el('div', 'muted', `Стара відповідь: ${show(oldV)}`));
+            notes.append(el('div', 'new', `Нова відповідь: ${show(nowV)}`));
+          }
+          if (changed) row.classList.add('rv-new');
+          if (notes.children.length) row.append(notes);
+        } else if (chk) {
+          const right = String(q.correct[k]);
+          const nowV = has(ans, k) ? String(ans[k]) : '';
+          const notes = el('div', 'rv-notes');
+          if (nowV === right) {
+            row.classList.add('rv-ok');
+          } else {
+            if (nowV) row.classList.add('rv-bad');
+            notes.append(el('div', 'ok', `Правильно: ${mt(q, right)}`));
+          }
+          if (notes.children.length) row.append(notes);
+        }
+        box.appendChild(row);
+      });
+      const legend = el('div', 'match-legend');
+      Object.entries(q.matches).forEach(([mk, mtxt]) => {
+        const item = el('div');
+        item.append(el('b', null, mk), el('span', null, mtxt));
+        legend.appendChild(item);
+      });
+      box.appendChild(legend);
+    },
+    isAnswered: (q, a) =>
+      isObj(a) && Object.keys(q.choices).every((k) => has(a, k) && a[k] !== ''),
+    isCorrect: (q, a) =>
+      isObj(a) && Object.keys(q.choices).every((k) => a[k] === String(q.correct[k])),
+    text(q, a) {
+      const ans = isObj(a) ? a : {};
+      return Object.keys(q.choices).map((k) => {
+        const v = has(ans, k) ? String(ans[k]) : '';
+        return `${opt(q, k)} → ${v && has(q.matches, v) ? mt(q, v) : NONE}`;
+      }).join('\n');
+    },
+    /* Пари "ключ з choices" - "ключ з matches", у порядку choices */
+    short(q, a) {
+      const ans = isObj(a) ? a : {};
+      const pairs = Object.keys(q.choices)
+        .filter((k) => has(ans, k) && ans[k] !== '' && has(q.matches, String(ans[k])))
+        .map((k) => `${k}-${ans[k]}`);
+      return pairs.length ? pairs.join(', ') : '-';
+    },
+    format(q, a) {
+      const ans = isObj(a) ? a : {};
+      const m = (mk) => `${mk} "${q.matches[mk]}"`;
+      return Object.keys(q.choices).map((k) => {
+        const left = opt(q, k);
+        const right = String(q.correct[k]);
+        if (ans[k] === right) return `${left} → ${m(right)} ✅`;
+        const mine = has(ans, k) && has(q.matches, ans[k]) ? m(ans[k]) : NONE;
+        return `${left} → ${mine} ❌ - ${m(right)}`;
+      }).join('\n');
+    }
+  },
+
+  /* Послідовність: choices + correct: ["2","1","3"] (усі ключі в правильному порядку).
+     Відповідь — масив, де індекс = позиція, null = вільна позиція (можна ставити пункти в будь-якому порядку) */
+  'ordering': {
+    validate(q) {
+      if (!nonEmptyObj(q.choices) || Object.keys(q.choices).length < 2)
+        return '"choices" має бути об\'єктом щонайменше з двома пунктами.';
+      const keys = Object.keys(q.choices);
+      if (!Array.isArray(q.correct) || q.correct.length !== keys.length ||
+          new Set(q.correct).size !== keys.length || q.correct.some((k) => !has(q.choices, k)))
+        return '"correct" має бути списком усіх ключів з "choices" у правильному порядку, без повторів.';
+      return null;
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      const keys = Object.keys(q.choices);
+      const n = keys.length;
+      const seq = Array.isArray(answer) ? answer : [];
+      const slots = () => keys.map((_, i) => (seq[i] === undefined ? null : seq[i]));
+      const commit = (arr) => onAnswer(trimSeq(arr));
+
+      box.innerHTML = '';
+      box.appendChild(el('p', 'hint',
+        'Натискайте пункти по черзі, обирайте позицію праворуч або впишіть порядок вручну (наприклад: 2 1 3).'));
+
+      const error = el('div', 'order-error');
+      error.hidden = true;
+      const fail = (msg) => { error.textContent = msg; error.hidden = false; };
+
+      keys.forEach((k) => {
+        const pos = seq.indexOf(k);
+        const row = el('div', 'order-row');
+
+        /* Клік: поставити на першу вільну позицію або прибрати (позиція звільняється) */
+        const btn = choiceButton(k, q.choices[k], pos >= 0, () => {
+          const arr = slots();
+          if (pos >= 0) arr[pos] = null;
+          else {
+            const free = arr.indexOf(null);
+            if (free >= 0) arr[free] = k;
+          }
+          commit(arr);
+        });
+        if ((chk || (rv && rv.reveal)) && pos >= 0) btn.classList.add(q.correct[pos] === k ? 'rv-ok' : 'rv-bad');
+
+        /* Вибір конкретної позиції; зайняту позицію не приймаємо */
+        const select = document.createElement('select');
+        select.className = 'pos-select';
+        select.title = 'Позиція у послідовності';
+        select.setAttribute('aria-label', `Позиція для пункту ${k}`);
+        select.add(new Option('—', ''));
+        for (let p = 1; p <= n; p++) select.add(new Option(String(p), String(p)));
+        select.value = pos >= 0 ? String(pos + 1) : '';
+        select.onchange = () => {
+          const arr = slots();
+          const cur = arr.indexOf(k);
+          if (select.value === '') {
+            if (cur >= 0) arr[cur] = null;
+            return commit(arr);
+          }
+          const idx = Number(select.value) - 1;
+          if (arr[idx] !== null && arr[idx] !== k) {
+            select.value = cur >= 0 ? String(cur + 1) : '';
+            return fail(`Позиція ${idx + 1} уже зайнята пунктом ${arr[idx]}. Так не можна — спочатку звільніть її.`);
+          }
+          if (cur >= 0) arr[cur] = null;
+          arr[idx] = k;
+          commit(arr);
+        };
+
+        row.append(btn, select);
+        box.appendChild(row);
+      });
+
+      /* Ручне введення порядку */
+      const manual = el('div', 'order-manual');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'order-input';
+      input.placeholder = 'напр. 2 1 3';
+      input.setAttribute('aria-label', 'Порядок вручну');
+      input.value = seq.some((k) => k !== null && k !== undefined)
+        ? seq.map((k) => (k === null || k === undefined ? '-' : k)).join(' ')
+        : '';
+      const apply = () => {
+        const res = parseOrder(q, input.value);
+        if (res.error) return fail(res.error);
+        commit(res.arr);
+      };
+      input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); apply(); } };
+      const applyBtn = el('button', 'secondary small', 'Застосувати');
+      applyBtn.onclick = apply;
+      const reset = el('button', 'secondary small', 'Скинути порядок');
+      reset.onclick = () => onAnswer([]);
+      manual.append(el('span', 'muted', 'Порядок вручну:'), input, applyBtn, reset);
+      box.append(manual, error);
+
+      if (rv) {
+        const T = (a) => handlers.ordering.text(q, a);
+        const block = el('div', 'rv-block');
+        if (rv.reveal) {
+          block.append(el('div', 'ok', `Правильний порядок: ${T(q.correct)}`));
+          block.append(el('div', handlers.ordering.isCorrect(q, rv.old) ? 'ok' : 'bad',
+            `Стара відповідь: ${T(rv.old)}`));
+        } else {
+          block.append(el('div', 'muted', `Стара відповідь: ${T(rv.old)}`));
+        }
+        if (sig(seq) !== sig(rv.old)) {
+          const cls = rv.reveal ? (handlers.ordering.isCorrect(q, seq) ? 'ok' : 'bad') : 'new';
+          block.append(el('div', cls, `Нова відповідь: ${T(seq)}`));
+        }
+        box.appendChild(block);
+      }
+    },
+    isAnswered: (q, a) =>
+      Array.isArray(a) && a.length === Object.keys(q.choices).length &&
+      a.every((k) => k !== null && k !== undefined),
+    isCorrect: (q, a) =>
+      Array.isArray(a) && a.length === q.correct.length && a.every((k, i) => k === q.correct[i]),
+    text(q, a) {
+      const arr = Array.isArray(a) ? a : [];
+      const good = (k) => k !== null && k !== undefined && has(q.choices, k);
+      if (!arr.some(good)) return NONE;
+      return arr.map((k) => (good(k) ? opt(q, k) : '—')).join(' → ');
+    },
+    short(q, a) {
+      const arr = Array.isArray(a) ? a : [];
+      const good = (k) => k !== null && k !== undefined && has(q.choices, k);
+      return arr.some(good) ? arr.map((k) => (good(k) ? k : '-')).join(' → ') : '-';
+    },
+    format(q, a) {
+      const right = q.correct.map((k) => opt(q, k)).join(' → ');
+      if (this.isCorrect(q, a)) return `${right} ✅`;
+      return `${this.text(q, a)} ❌ - ${right}`;
+    }
+  },
+
+  /* Правда / неправда: correct: true | false (без choices) */
+  'true-false': {
+    validate(q) {
+      return typeof q.correct === 'boolean' ? null : '"correct" має бути true або false.';
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      box.innerHTML = '';
+      [[true, 'Правда', '✓'], [false, 'Неправда', '✗']].forEach(([v, text, mark]) => {
+        const btn = choiceButton(mark, text, answer === v, () => onAnswer(v));
+        if (rv) markChoice(btn, { correct: v === q.correct, old: rv.old === v, now: answer === v }, rv.reveal);
+        else if (chk) markCheck(btn, { correct: v === q.correct, now: answer === v });
+        box.appendChild(btn);
+      });
+    },
+    isAnswered: (q, a) => typeof a === 'boolean',
+    isCorrect: (q, a) => a === q.correct,
+    text: (q, a) => (typeof a === 'boolean' ? (a ? 'Правда' : 'Неправда') : NONE),
+    short: (q, a) => (typeof a === 'boolean' ? (a ? 'Правда' : 'Неправда') : '-'),
+    format(q, a) {
+      const name = (v) => (v ? 'Правда' : 'Неправда');
+      if (a === q.correct) return `${name(q.correct)} ✅`;
+      return `${typeof a === 'boolean' ? name(a) : NONE} ❌ - ${name(q.correct)}`;
+    }
+  }
+};
+
+/* ---------- Стан ----------
+   mode: 'quiz' | 'review'
+   old: відповіді з завантажених результатів (лише в режимі помилок)
+   wrong: номери питань, на які відповіли неправильно або взагалі не відповіли
+   showCorrect: чекбокс «Одразу показувати відповіді» (за замовчуванням вимкнено):
+     у режимі помилок — одразу відкриває правильність, у звичайному — автоматично показує відповідь на кожному питанні
+   checkOnNext: чекбокс «Показувати відповідь при натисканні Далі» (за замовчуванням вимкнено) */
+const newState = (questions = []) => ({
+  questions, current: 0, answers: {}, finished: false,
+  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false
+});
+let state = newState();
+let answersOpen = false;   // відкритий екран «Правильні відповіді» (не зберігається)
+let pendingTest = null;    // тест, завантажений разом зі збереженими результатами (не зберігається)
+let pendingSaved = null;   // розібрані збережені результати { old, wrong, current } (не зберігається)
+let checked = false;       // відповідь на поточне питання показано; скидається при зміні питання (не зберігається)
+let lastQuizIdx = -1;      // питання, яке було намальовано востаннє
+const isReview = () => state.mode === 'review';
+
+/* ---------- Зображення до питання: "images": ["data:image/png;base64,...", ...] ---------- */
+const DATA_URL_RE = /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=\s_-]+$/i;
+function validateImages(images) {
+  if (images === undefined || images === null) return null;
+  if (!Array.isArray(images)) return '"images" має бути списком (масивом) рядків.';
+  const bad = images.findIndex((src) => typeof src !== 'string' || !DATA_URL_RE.test(src.trim()));
+  return bad < 0 ? null
+    : `"images[${bad}]" має бути Data URL у форматі "data:image/png;base64,...".`;
+}
+
+/* Показ зображень під питанням (перемальовуємо лише при зміні питання, щоб не блимало) */
+function renderImages(q) {
+  const box = $('question-images');
+  if (box._for === q) return;
+  box._for = q;
+  box.innerHTML = '';
+  const list = Array.isArray(q.images) ? q.images : [];
+  list.forEach((src, i) => {
+    const img = document.createElement('img');
+    img.className = 'q-image';
+    img.alt = `Зображення ${i + 1} до питання`;
+    img.title = 'Натисніть, щоб збільшити';
+    img.src = src.trim();
+    img.onclick = () => openLightbox(img.src);
+    img.onerror = () => {
+      const msg = el('span', 'muted', `Не вдалося показати зображення ${i + 1}.`);
+      img.replaceWith(msg);
+    };
+    box.appendChild(img);
+  });
+  box.hidden = !list.length;
+}
+function openLightbox(src) {
+  $('lightbox-img').src = src;
+  $('lightbox').hidden = false;
+}
+function closeLightbox() {
+  $('lightbox').hidden = true;
+  $('lightbox-img').removeAttribute('src');
+}
+$('lightbox').onclick = closeLightbox;
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('lightbox').hidden) closeLightbox(); });
+
+/* ---------- Валідація JSON ---------- */
+function validate(data) {
+  if (!Array.isArray(data) || !data.length) return 'JSON має бути непорожнім масивом.';
+  for (let i = 0; i < data.length; i++) {
+    const q = data[i];
+    const n = i + 1;
+    if (!q || typeof q.question !== 'string') return `Питання ${n}: немає поля "question".`;
+    const imgErr = validateImages(q.images);
+    if (imgErr) return `Питання ${n}: ${imgErr}`;
+    q.type = TYPE_ALIASES[q.type] || q.type;
+    const h = handlers[q.type];
+    if (!h) return `Питання ${n}: непідтримуваний тип "${q.type}".`;
+    const err = h.validate(q);
+    if (err) return `Питання ${n}: ${err}`;
+  }
+  return null;
+}
+
+function fingerprint(questions) {
+  const s = questions.map((q) => q.question).join('\u0001');
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(16);
+}
+
+/* ---------- Копіювання і завантаження ---------- */
+async function copyText(text, btn) {
+  let ok = false;
+  try {
+    await navigator.clipboard.writeText(text);
+    ok = true;
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { ok = document.execCommand('copy'); } catch (e2) {}
+    ta.remove();
+  }
+  if (!btn) return;
+  if (btn.dataset.label === undefined) btn.dataset.label = btn.textContent;
+  btn.textContent = ok ? 'Скопійовано ✓' : 'Не вдалося скопіювати';
+  clearTimeout(btn._t);
+  btn._t = setTimeout(() => { btn.textContent = btn.dataset.label; }, 1500);
+}
+
+function computeResults() {
+  const total = state.questions.length;
+  const items = state.questions.map((q, i) => {
+    const h = handlers[q.type];
+    const a = state.answers[i];
+    return { i, q, ok: h.isCorrect(q, a), answered: h.isAnswered(q, a), line: h.format(q, a) };
+  });
+  const score = items.filter((x) => x.ok).length;
+  const okPct = Math.round((score / total) * 100);
+  return {
+    total, items, score, okPct, badPct: 100 - okPct,
+    skipped: items.filter((x) => !x.answered).length
+  };
+}
+const statsLine = (r) =>
+  `✅ Правильно: ${r.score} (${r.okPct}%)   ❌ Неправильно: ${r.total - r.score} (${r.badPct}%)` +
+  (r.skipped ? ` — з них без відповіді: ${r.skipped}` : '');
+
+/* Повний звіт: бал, відсотки і всі відповіді з порядковими номерами */
+function fullReport() {
+  const r = computeResults();
+  const body = r.items.map((x) => `${x.i + 1}. ${x.q.question}\n${x.line}`).join('\n\n');
+  return `Результат: ${r.score} з ${r.total}\n${statsLine(r)}\n\n${body}`;
+}
+/* Короткий звіт: лише номер і ✅/❌ */
+function marksReport() {
+  const r = computeResults();
+  return 'Результат:\n' + r.items.map((x) => `${x.i + 1}.- ${x.ok ? '✅' : '❌'}`).join('\n');
+}
+/* Поточні відповіді без позначок правильно/неправильно: "1. А", "2. -" */
+function myAnswersReport() {
+  return state.questions.map((q, i) => `${i + 1}. ${handlers[q.type].short(q, state.answers[i])}`).join('\n');
+}
+/* Правильні відповіді на весь тест */
+function answersReport() {
+  return 'Правильні відповіді:\n\n' + state.questions
+    .map((q, i) => `${i + 1}. ${q.question}\n${handlers[q.type].text(q, q.correct)}`)
+    .join('\n\n');
+}
+
+function downloadResults() {
+  const r = computeResults();
+  const payload = {
+    app: 'json-quiz', version: 1, date: new Date().toISOString(),
+    total: r.total, score: r.score, current: state.current, fingerprint: fingerprint(state.questions),
+    answers: state.questions.map((q, i) => (state.answers[i] === undefined ? null : state.answers[i])),
+    results: r.items.map((x) => x.ok)
+  };
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  const stamp = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}`;
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `results-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/* ---------- Бали НМТ: правила з окремого JSON-файлу (формат scoring-format.md) ---------- */
+let nmtConfig = null;   // { cfg, scaler, warnings, name } — розібраний файл правил (не зберігається)
+let nmtError = '';      // помилка завантаження файлу правил
+
+const ALLOWED_STRATEGIES = {
+  'single-choice': ['all-or-nothing'],
+  'multiple-choice': ['per-correct', 'all-or-nothing'],
+  'matching-question': ['per-pair', 'all-or-nothing'],
+  'ordering': ['tiers', 'all-or-nothing'],
+  'true-false': ['per-statement', 'all-or-nothing']
+};
+const PER_UNIT_KEY = {
+  'per-correct': 'points-per-correct',
+  'per-pair': 'points-per-pair',
+  'per-statement': 'points-per-statement'
+};
+const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
+const validPos = (p) => p === 'first' || p === 'last' || (Number.isInteger(p) && p >= 1);
+const fmtNum = (x) => String(Math.round(x * 1000) / 1000);
+/* Нижня межа за замовчуванням 0 (щоб штрафи не вели в мінус), верхня — без обмеження */
+const clampPts = (v, r) => Math.min(r['max-points'] ?? Infinity, Math.max(r['min-points'] ?? 0, v));
+
+/* Перевірка одного правила; повертає null або текст помилки */
+function validateRule(r) {
+  const nn = (v) => isNum(v) && v >= 0;
+  if (r.count !== undefined && !(Number.isInteger(r.count) && r.count >= 0))
+    return '"count" має бути цілим числом ≥ 0.';
+  if (r.strategy === 'all-or-nothing') return nn(r.points) ? null : '"points" має бути числом ≥ 0.';
+
+  if (r.strategy === 'tiers') {
+    if (!Array.isArray(r.tiers) || !r.tiers.length) return '"tiers" має бути непорожнім списком.';
+    for (const k of ['default-points', 'max-points'])
+      if (r[k] !== undefined && !nn(r[k])) return `"${k}" має бути числом ≥ 0.`;
+    let prev = Infinity;
+    for (let i = 0; i < r.tiers.length; i++) {
+      const t = r.tiers[i];
+      const n = i + 1;
+      if (!isObj(t) || !nn(t.points)) return `рівень ${n}: "points" має бути числом ≥ 0.`;
+      if (t.points > prev) return `рівень ${n}: бали зростають зверху вниз (рівні мають іти від найвищого до найнижчого).`;
+      prev = t.points;
+      if (!nonEmptyObj(t.when)) return `рівень ${n}: "when" має бути непорожнім об'єктом.`;
+      for (const [k, v] of Object.entries(t.when)) {
+        if (k === 'all-positions') {
+          if (v !== true) return `рівень ${n}: "all-positions" може бути лише true.`;
+        } else if (k === 'positions-all' || k === 'positions-any') {
+          if (!Array.isArray(v) || !v.length || !v.every(validPos))
+            return `рівень ${n}: "${k}" має бути списком із "first", "last" або чисел ≥ 1.`;
+        } else {
+          return `рівень ${n}: невідома умова "${k}".`;
+        }
+      }
+    }
+    if (r['max-points'] !== undefined && r.tiers[0].points > r['max-points'])
+      return 'найвищий рівень перевищує "max-points".';
+    return null;
+  }
+
+  const unit = PER_UNIT_KEY[r.strategy];
+  if (!nn(r[unit])) return `"${unit}" має бути числом ≥ 0.`;
+  for (const k of ['penalty-per-wrong', 'min-points', 'max-points'])
+    if (r[k] !== undefined && !nn(r[k])) return `"${k}" має бути числом ≥ 0.`;
+  if ((r['min-points'] ?? 0) > (r['max-points'] ?? Infinity)) return '"min-points" не може бути більшим за "max-points".';
+  return null;
+}
+
+/* Максимум за одне завдання за декларацією правила (для перевірки "count"); undefined, якщо невідомо */
+function ruleMax(r) {
+  if (r.strategy === 'all-or-nothing') return r.points;
+  if (r.strategy === 'tiers') return r['max-points'] ?? Math.max(r['default-points'] ?? 0, ...r.tiers.map((t) => t.points));
+  return r['max-points'];
+}
+
+/* Блок "scaled": повертає { lo, below, apply(x) } або { error } */
+function buildScaler(sc, maxPts) {
+  if (!isObj(sc)) return { error: 'має бути об\'єктом.' };
+  let thMin = null;
+  let below = null;
+  if (sc.threshold !== undefined) {
+    const th = sc.threshold;
+    if (!isObj(th)) return { error: '"threshold" має бути об\'єктом.' };
+    if (th['min-test-points'] !== undefined) {
+      thMin = th['min-test-points'];
+      if (!Number.isInteger(thMin) || thMin < 0 || thMin > maxPts)
+        return { error: '"threshold.min-test-points" має бути цілим числом від 0 до "test.max-points".' };
+    }
+    below = th['below-threshold'] ?? null;
+    if (below !== null && !isNum(below)) return { error: '"threshold.below-threshold" має бути числом або null.' };
+  }
+
+  let lo;
+  let fn;
+  if (sc.strategy === 'lookup-table') {
+    if (!nonEmptyObj(sc.table)) return { error: '"table" має бути непорожнім об\'єктом.' };
+    const table = {};
+    for (const [k, v] of Object.entries(sc.table)) {
+      if (!/^\d+$/.test(k)) return { error: `ключ таблиці "${k}" має бути цілим тестовим балом.` };
+      if (!isNum(v)) return { error: `значення для балу ${k} має бути числом.` };
+      table[Number(k)] = v;
+    }
+    const keys = Object.keys(table).map(Number).sort((a, b) => a - b);
+    if (keys[keys.length - 1] > maxPts)
+      return { error: `таблиця містить бал ${keys[keys.length - 1]}, що більше за "test.max-points" (${maxPts}).` };
+    lo = thMin ?? keys[0];
+    for (let x = lo; x <= maxPts; x++)
+      if (!(x in table)) return { error: `у таблиці немає тестового балу ${x} (потрібні всі цілі від ${lo} до ${maxPts}).` };
+    for (let x = lo + 1; x <= maxPts; x++)
+      if (table[x] < table[x - 1]) return { error: `значення спадає на тестовому балі ${x}.` };
+    fn = (x) => table[x];
+  } else if (sc.strategy === 'piecewise-linear') {
+    const an = sc.anchors;
+    if (!Array.isArray(an) || an.length < 2 ||
+        an.some((p) => !Array.isArray(p) || p.length !== 2 || !isNum(p[0]) || !isNum(p[1])))
+      return { error: '"anchors" має бути списком щонайменше з двох пар [тестовий бал, рейтинговий бал].' };
+    for (let i = 1; i < an.length; i++) {
+      if (an[i][0] <= an[i - 1][0]) return { error: '"anchors" мають іти за зростанням тестового балу.' };
+      if (an[i][1] < an[i - 1][1]) return { error: `значення спадає в опорній точці [${an[i][0]}, ${an[i][1]}].` };
+    }
+    if (an[an.length - 1][0] < maxPts)
+      return { error: `остання опорна точка (${an[an.length - 1][0]}) менша за "test.max-points" (${maxPts}).` };
+    const rnd = { 'half-up': (v) => Math.floor(v + 0.5), floor: Math.floor, ceil: Math.ceil }[sc.rounding ?? 'half-up'];
+    if (!rnd) return { error: '"rounding" має бути "half-up", "floor" або "ceil".' };
+    lo = thMin ?? an[0][0];
+    fn = (x) => {
+      if (x <= an[0][0]) return an[0][1];
+      for (let i = 1; i < an.length; i++) {
+        if (x <= an[i][0]) {
+          const [x0, y0] = an[i - 1];
+          const [x1, y1] = an[i];
+          return rnd(y0 + ((y1 - y0) * (x - x0)) / (x1 - x0));
+        }
+      }
+      return an[an.length - 1][1];
+    };
+  } else {
+    return { error: '"strategy" має бути "lookup-table" або "piecewise-linear".' };
+  }
+
+  if (sc['min-scaled'] !== undefined && fn(lo) !== sc['min-scaled'])
+    return { error: `мінімальний тестовий бал (${lo}) дає ${fn(lo)}, а "min-scaled" = ${sc['min-scaled']}.` };
+  if (sc['max-scaled'] !== undefined && fn(maxPts) !== sc['max-scaled'])
+    return { error: `максимальний тестовий бал (${maxPts}) дає ${fn(maxPts)}, а "max-scaled" = ${sc['max-scaled']}.` };
+
+  return { lo, below, apply: (x) => (x < lo ? { below: true, value: below } : { below: false, value: fn(x) }) };
+}
+
+/* Перевірка всього файлу правил */
+function parseScoring(cfg) {
+  const warnings = [];
+  if (!isObj(cfg) || !isObj(cfg.test)) return { error: 'Це не файл правил балів: немає блоку "test".' };
+  const maxPts = cfg.test['max-points'];
+  if (!Number.isInteger(maxPts) || maxPts < 1) return { error: '"test.max-points" має бути цілим числом ≥ 1.' };
+  const rules = cfg.test.score;
+  if (!nonEmptyObj(rules)) return { error: '"test.score" має бути непорожнім об\'єктом.' };
+
+  for (const [type, r] of Object.entries(rules)) {
+    const allowed = ALLOWED_STRATEGIES[type];
+    if (!allowed) return { error: `"test.score": невідомий тип завдання "${type}".` };
+    if (!isObj(r) || !allowed.includes(r.strategy))
+      return { error: `"${type}": "strategy" має бути однією з: ${allowed.join(', ')}.` };
+    const e = validateRule(r);
+    if (e) return { error: `"${type}": ${e}` };
+  }
+
+  /* Правило 8: сума count × max-points має збігатися з test.max-points (лише попередження) */
+  const types = Object.keys(rules);
+  if (types.every((t) => rules[t].count !== undefined && ruleMax(rules[t]) !== undefined)) {
+    const sum = types.reduce((s, t) => s + rules[t].count * ruleMax(rules[t]), 0);
+    if (sum !== maxPts) warnings.push(`Сума "count × max-points" за типами дорівнює ${sum}, а "test.max-points" = ${maxPts}.`);
+  }
+
+  let scaler = null;
+  if (cfg.scaled !== undefined) {
+    scaler = buildScaler(cfg.scaled, maxPts);
+    if (scaler.error) return { error: `"scaled": ${scaler.error}` };
+  }
+  return { cfg, scaler, warnings };
+}
+
+/* Бали за одне завдання. Відсутня відповідь = 0 */
+function scoreQuestion(q, a, r) {
+  const h = handlers[q.type];
+  if (r.strategy === 'all-or-nothing') return h.isCorrect(q, a) ? r.points : 0;
+  const pen = r['penalty-per-wrong'] ?? 0;
+
+  if (r.strategy === 'per-correct') {
+    const sel = Array.isArray(a) ? [...new Set(a.filter((k) => has(q.choices, k)))] : [];
+    if (!sel.length) return 0;
+    const c = sel.filter((k) => q.correct.includes(k)).length;
+    return clampPts(c * r['points-per-correct'] - (sel.length - c) * pen, r);
+  }
+
+  if (r.strategy === 'per-pair') {
+    const ans = isObj(a) ? a : {};
+    let c = 0;
+    let w = 0;
+    Object.keys(q.choices).forEach((k) => {
+      const v = has(ans, k) ? String(ans[k]) : '';
+      if (!v) return;
+      if (v === String(q.correct[k])) c++; else w++;
+    });
+    if (!c && !w) return 0;
+    return clampPts(c * r['points-per-pair'] - w * pen, r);
+  }
+
+  if (r.strategy === 'per-statement') {
+    if (typeof a !== 'boolean') return 0;
+    const c = a === q.correct ? 1 : 0;
+    return clampPts(c * r['points-per-statement'] - (1 - c) * pen, r);
+  }
+
+  /* tiers: рівні зверху вниз, перший, умови якого виконані (усі умови в "when" — разом) */
+  const arr = Array.isArray(a) ? a : [];
+  if (!arr.some((k) => k !== null && k !== undefined)) return 0;
+  const n = q.correct.length;
+  const ok = (i) => arr[i] === q.correct[i];
+  const idx = (p) => {
+    const i = p === 'first' ? 0 : p === 'last' ? n - 1 : p - 1;
+    if (i < 0 || i >= n) throw new Error(`позиція ${p} виходить за межі (у питанні пунктів: ${n}).`);
+    return i;
+  };
+  const matches = (w) =>
+    (w['all-positions'] === undefined || q.correct.every((_, i) => ok(i))) &&
+    (w['positions-all'] === undefined || w['positions-all'].every((p) => ok(idx(p)))) &&
+    (w['positions-any'] === undefined || w['positions-any'].some((p) => ok(idx(p))));
+  for (const t of r.tiers) if (matches(t.when)) return t.points;
+  return r['default-points'] ?? 0;
+}
+
+/* Максимум за одне завдання (залежить від самого питання: кількість правильних, пар тощо) */
+function maxQuestion(q, r) {
+  if (r.strategy === 'all-or-nothing') return r.points;
+  if (r.strategy === 'per-correct') return clampPts(q.correct.length * r['points-per-correct'], r);
+  if (r.strategy === 'per-pair') return clampPts(Object.keys(q.choices).length * r['points-per-pair'], r);
+  if (r.strategy === 'per-statement') return clampPts(r['points-per-statement'], r);
+  return Math.min(r['max-points'] ?? Infinity, Math.max(r['default-points'] ?? 0, ...r.tiers.map((t) => t.points)));
+}
+
+/* Повний розрахунок: сирі бали → максимум за правилами → масштабування до max-points файлу → рейтинговий бал */
+function computeNmt(conf) {
+  const { cfg, scaler } = conf;
+  const rules = cfg.test.score;
+  const fileMax = cfg.test['max-points'];
+  const per = {};
+  let raw = 0;
+  let max = 0;
+
+  state.questions.forEach((q, i) => {
+    const r = rules[q.type];
+    if (!r) throw new Error(`Питання ${i + 1}: у файлі немає правил для типу "${q.type}".`);
+    let s;
+    let m;
+    try {
+      s = scoreQuestion(q, state.answers[i], r);
+      m = maxQuestion(q, r);
+    } catch (e) {
+      throw new Error(`Питання ${i + 1}: ${e.message}`);
+    }
+    const p = per[q.type] || (per[q.type] = { count: 0, score: 0, max: 0 });
+    p.count++; p.score += s; p.max += m;
+    raw += s; max += m;
+  });
+  if (max <= 0) throw new Error('Максимальний тестовий бал за цими правилами дорівнює 0.');
+
+  /* Масштабування: наприклад, у тесті максимум 108, а у файлі 54 → коефіцієнт 108 / 54 = 2, бали ділимо на 2 */
+  const factor = max / fileMax;
+  const exact = raw / factor;
+  const scaledTest = Math.min(fileMax, Math.max(0, Math.round(exact)));
+  const rating = scaler ? scaler.apply(scaledTest) : null;
+
+  const warnings = [...conf.warnings];
+  Object.entries(rules).forEach(([type, r]) => {
+    const have = per[type] ? per[type].count : 0;
+    if (r.count !== undefined && r.count !== have)
+      warnings.push(`Тип "${type}": у файлі count = ${r.count}, а в тесті питань: ${have}.`);
+  });
+  return { raw, max, fileMax, factor, exact, scaledTest, rating, per, warnings, lo: scaler ? scaler.lo : null };
+}
+
+function renderNmt() {
+  const box = $('nmt-box');
+  const body = $('nmt-body');
+  const err = $('nmt-error');
+  body.innerHTML = '';
+  err.hidden = true;
+  if (!nmtConfig && !nmtError) { box.hidden = true; return; }
+  box.hidden = false;
+  if (nmtError) { err.textContent = nmtError; err.hidden = false; }
+  if (!nmtConfig) return;
+
+  let r;
+  try {
+    r = computeNmt(nmtConfig);
+  } catch (e) {
+    err.textContent = 'Не вдалося порахувати: ' + e.message;
+    err.hidden = false;
+    return;
+  }
+
+  const row = (label, value, cls) => {
+    const d = el('div', 'nmt-row' + (cls ? ' ' + cls : ''));
+    d.append(el('span', 'nmt-label', label), el('span', 'nmt-value', value));
+    body.appendChild(d);
+  };
+
+  row('Файл правил', nmtConfig.name);
+  row('Тестові бали за правилами', `${fmtNum(r.raw)} з ${fmtNum(r.max)}`);
+  if (r.max !== r.fileMax) {
+    row('Масштабування',
+      `максимум у тесті ${fmtNum(r.max)}, у файлі ${r.fileMax}: коефіцієнт ${fmtNum(r.max)} / ${r.fileMax} = ${fmtNum(r.factor)}. ` +
+      `${fmtNum(r.raw)} / ${fmtNum(r.factor)} = ${fmtNum(r.exact)} ≈ ${r.scaledTest}`);
+  }
+  row('Тестові бали для шкали', `${r.scaledTest} з ${r.fileMax}`);
+
+  if (!r.rating) {
+    row('Рейтинговий бал', 'у файлі немає блоку "scaled"', 'muted');
+  } else if (r.rating.below) {
+    const v = r.rating.value;
+    row('Рейтинговий бал',
+      (v === null ? 'результату немає' : String(v)) + ` (менше за поріг: ${r.lo} тестових балів)`, 'bad');
+  } else {
+    row('Рейтинговий бал', String(r.rating.value), 'nmt-main');
+  }
+
+  const t = el('div', 'nmt-types');
+  Object.entries(r.per).forEach(([type, p]) => {
+    t.appendChild(el('div', 'muted', `${type}: ${p.count} пит. — ${fmtNum(p.score)} з ${fmtNum(p.max)}`));
+  });
+  body.appendChild(t);
+  r.warnings.forEach((w) => body.appendChild(el('div', 'nmt-warn', '⚠ ' + w)));
+}
+
+/* ---------- Екрани ---------- */
+function show(screen) {
+  ['load', 'quiz', 'result', 'answers'].forEach((s) => { $('screen-' + s).hidden = screen !== s; });
+  $('footer').hidden = screen === 'load';
+  $('btn-finish').hidden = screen !== 'quiz';
+  $('btn-save').hidden = screen !== 'quiz';
+  $('btn-copy-mine-f').hidden = screen !== 'quiz';
+  $('btn-answers').hidden = screen === 'answers';
+}
+
+function render() {
+  if (!state.questions.length || answersOpen || state.finished) lastQuizIdx = -1;
+  if (!state.questions.length) return show('load');
+  if (answersOpen) return renderAnswers();
+  if (state.finished) return renderResults();
+  renderQuiz();
+}
+
+function renderQuiz() {
+  /* Показ відповіді діє лише поки ви на цьому питанні */
+  if (lastQuizIdx !== state.current) checked = !isReview() && !!state.showCorrect;
+  lastQuizIdx = state.current;
+  const review = isReview();
+  const total = state.questions.length;
+  const q = state.questions[state.current];
+  const h = handlers[q.type];
+  const answer = state.answers[state.current];
+  const pos = review ? state.wrong.indexOf(state.current) : state.current;
+  const count = review ? state.wrong.length : total;
+
+  show('quiz');
+  $('counter').textContent = review
+    ? `Робота над помилками: ${pos + 1} з ${count} (питання № ${state.current + 1})`
+    : `Питання ${state.current + 1} з ${total}`;
+  $('progress-bar').style.width = `${(pos / count) * 100}%`;
+  $('question').textContent = q.question;
+  renderImages(q);
+  $('rv-legend').hidden = !review;
+  $('chk-show-correct').checked = !!state.showCorrect;
+  document.querySelectorAll('#rv-legend [data-rv]').forEach((tag) => {
+    tag.hidden = tag.dataset.rv === 'reveal' ? !state.showCorrect : !!state.showCorrect;
+  });
+
+  const rv = review ? { old: state.old[state.current], reveal: !!state.showCorrect || checked } : null;
+  h.render(q, answer, $('answer-area'), (value) => {
+    state.answers[state.current] = value;
+    saveState();
+    render();
+  }, rv, !review && checked);
+
+  /* Зелена плашка з правильною відповіддю (+ червона з вашою, якщо вона неправильна) */
+  const hasAnswer = sig(answer) !== 'null';
+  $('btn-reset-answer').disabled = !hasAnswer;
+  $('btn-reveal').textContent = checked ? 'Сховати відповідь' : 'Показати відповідь';
+  $('chk-check-next').checked = !!state.checkOnNext;
+  $('reveal-box').hidden = !checked;
+  if (checked) {
+    $('reveal-text').textContent = `Правильна відповідь:\n${h.text(q, q.correct)}`;
+    const wrongMine = hasAnswer && !h.isCorrect(q, answer);
+    $('reveal-mine').hidden = !wrongMine;
+    if (wrongMine) $('reveal-mine').textContent = `Ваша відповідь:\n${h.text(q, answer)}`;
+  }
+
+  renderPalette();
+  $('btn-prev').disabled = pos === 0;
+  $('btn-next').disabled = false;
+  $('btn-next').textContent = pos === count - 1 ? 'Завершити' : 'Далі →';
+}
+
+function renderPalette() {
+  const box = $('palette');
+  box.innerHTML = '';
+  const review = isReview();
+  const indexes = review ? state.wrong : state.questions.map((q, i) => i);
+  indexes.forEach((i) => {
+    const q = state.questions[i];
+    const btn = document.createElement('button');
+    btn.textContent = i + 1;
+    btn.title = `Питання ${i + 1}`;
+    if (review) {
+      btn.classList.add('rv-wrong');
+      if (!sameAnswer(q, state.answers[i], state.old[i])) {
+        btn.classList.add('rv-changed');
+        btn.title += ' (відповідь змінено)';
+      }
+    } else if (handlers[q.type].isAnswered(q, state.answers[i])) {
+      btn.classList.add('answered');
+    }
+    if (i === state.current) btn.classList.add('current');
+    btn.onclick = () => { state.current = i; saveState(); render(); };
+    box.appendChild(btn);
+  });
+}
+
+function renderResults() {
+  show('result');
+  const r = computeResults();
+  const list = $('result-list');
+  list.innerHTML = '';
+
+  r.items.forEach((x) => {
+    const li = document.createElement('li');
+    const title = document.createElement('div');
+    title.className = 'q-text';
+    title.textContent = x.q.question;
+    const line = document.createElement('div');
+    line.className = 'line ' + (x.ok ? 'ok' : 'bad');
+    line.textContent = x.line;
+    li.append(title, line);
+    list.appendChild(li);
+  });
+
+  $('score').textContent = `Результат: ${r.score} з ${r.total}`;
+  $('bar-ok').style.width = r.okPct + '%';
+  $('bar-bad').style.width = r.badPct + '%';
+  $('stats-text').textContent = statsLine(r);
+
+  const rs = $('review-stats');
+  if (isReview()) {
+    const was = state.questions.filter((q, i) => handlers[q.type].isCorrect(q, state.old[i])).length;
+    const changed = state.wrong.filter((i) =>
+      !sameAnswer(state.questions[i], state.answers[i], state.old[i])).length;
+    rs.textContent = `Робота над помилками: було правильно ${was}, стало ${r.score}. Змінено відповідей: ${changed}.`;
+    rs.hidden = false;
+  } else {
+    rs.hidden = true;
+  }
+  renderNmt();
+}
+
+function renderAnswers() {
+  show('answers');
+  const list = $('answers-list');
+  list.innerHTML = '';
+  state.questions.forEach((q, i) => {
+    const li = document.createElement('li');
+    const title = el('div', 'q-text', q.question);
+    const line = el('div', 'line ok', handlers[q.type].text(q, q.correct));
+    li.append(title, line);
+    list.appendChild(li);
+  });
+}
+
+/* ---------- Події ---------- */
+/* Перше «Далі» при увімкненому чекбоксі лише показує відповідь, друге — переходить */
+function wantsCheck() {
+  if (!state.checkOnNext || checked) return false;
+  if (state.showCorrect) return false;
+  return sig(state.answers[state.current]) !== 'null';
+}
+function step(dir) {
+  if (dir > 0 && wantsCheck()) { checked = true; render(); return; }
+  if (isReview()) {
+    const list = state.wrong;
+    const target = dir > 0
+      ? list.find((i) => i > state.current)
+      : [...list].reverse().find((i) => i < state.current);
+    if (target !== undefined) state.current = target;
+    else if (dir > 0) state.finished = true;
+  } else if (dir > 0) {
+    if (state.current < state.questions.length - 1) state.current++;
+    else state.finished = true;
+  } else if (state.current > 0) {
+    state.current--;
+  }
+  saveState();
+  render();
+}
+$('btn-next').onclick = () => step(1);
+$('btn-prev').onclick = () => step(-1);
+
+$('btn-restart').onclick = () => {
+  if (!confirm('Почати спочатку? Усі поточні відповіді буде стерто.')) return;
+  answersOpen = false;
+  state.finished = false;
+  checked = false;
+  if (isReview()) {
+    state.answers = { ...state.old };
+    state.current = state.wrong[0];
+  } else {
+    state.answers = {};
+    state.current = 0;
+  }
+  saveState();
+  render();
+};
+$('btn-finish').onclick = () => {
+  state.finished = true;
+  saveState();
+  render();
+};
+$('btn-continue').onclick = () => {
+  state.finished = false;
+  saveState();
+  render();
+};
+$('btn-new').onclick = () => {
+  if (!confirm('Очистити результат? Тест і всі відповіді буде видалено.')) return;
+  clearState();
+  state = newState();
+  resetTransient();
+  $('file-input').value = '';
+  $('error').textContent = '';
+  render();
+};
+
+$('btn-reveal').onclick = () => { checked = !checked; render(); };
+$('btn-reset-answer').onclick = () => {
+  delete state.answers[state.current];
+  saveState();
+  render();
+};
+$('chk-check-next').onchange = (e) => {
+  state.checkOnNext = e.target.checked;
+  saveState();
+  render();
+};
+$('btn-reveal-copy').onclick = (e) => {
+  const q = state.questions[state.current];
+  copyText(`${state.current + 1}. ${q.question}\n${handlers[q.type].text(q, q.correct)}`, e.currentTarget);
+};
+
+$('btn-copy-full').onclick = (e) => copyText(fullReport(), e.currentTarget);
+$('btn-copy-marks').onclick = (e) => copyText(marksReport(), e.currentTarget);
+$('btn-copy-mine').onclick = (e) => copyText(myAnswersReport(), e.currentTarget);
+$('btn-copy-mine-f').onclick = (e) => copyText(myAnswersReport(), e.currentTarget);
+$('btn-download').onclick = downloadResults;
+
+/* Бали НМТ: запит файлу правил */
+$('btn-nmt').onclick = () => $('nmt-input').click();
+$('nmt-input').onchange = (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  readJsonFile(file, (readErr, data) => {
+    nmtConfig = null;
+    nmtError = '';
+    if (readErr) nmtError = readErr;
+    else {
+      const res = parseScoring(data);
+      if (res.error) nmtError = res.error;
+      else nmtConfig = { ...res, name: file.name };
+    }
+    render();
+  });
+};
+$('btn-save').onclick = downloadResults;
+
+$('chk-show-correct').onchange = (e) => {
+  state.showCorrect = e.target.checked;
+  if (!isReview()) checked = state.showCorrect;
+  saveState();
+  render();
+};
+
+const openAnswers = () => { answersOpen = true; render(); };
+$('btn-answers').onclick = openAnswers;
+$('btn-show-answers').onclick = openAnswers;
+$('btn-answers-back').onclick = () => { answersOpen = false; render(); };
+$('btn-copy-answers').onclick = (e) => copyText(answersReport(), e.currentTarget);
+
+/* ---------- Завантаження файлів ---------- */
+function readJsonFile(file, done) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); }
+    catch (ex) { return done('Не вдалося прочитати JSON: ' + ex.message); }
+    done(null, data);
+  };
+  reader.onerror = () => done('Не вдалося прочитати файл.');
+  reader.readAsText(file);
+}
+
+function resetTransient() {
+  answersOpen = false;
+  pendingTest = null;
+  pendingSaved = null;
+  $('saved-actions').hidden = true;
+  $('review-test-input').value = '';
+  $('review-results-input').value = '';
+  $('review-results-input').disabled = true;
+  $('review-info').textContent = '';
+  $('review-error').textContent = '';
+}
+
+/* Звичайний режим */
+$('file-input').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  readJsonFile(file, (readErr, data) => {
+    if (readErr) { $('error').textContent = readErr; return; }
+    const err = validate(data);
+    if (err) { $('error').textContent = err; return; }
+    state = newState(data);
+    resetTransient();
+    $('error').textContent = '';
+    saveState();
+    render();
+  });
+};
+
+/* Робота над помилками, крок 1: тест */
+$('review-test-input').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingTest = null;
+  pendingSaved = null;
+  $('saved-actions').hidden = true;
+  $('review-results-input').value = '';
+  $('review-results-input').disabled = true;
+  $('review-info').textContent = '';
+  $('review-error').textContent = '';
+  readJsonFile(file, (readErr, data) => {
+    const err = readErr || validate(data);
+    if (err) { $('review-error').textContent = err; return; }
+    pendingTest = data;
+    $('review-results-input').disabled = false;
+    $('review-info').textContent = `Тест завантажено (питань: ${data.length}). Тепер оберіть файл результатів.`;
+  });
+};
+
+/* Збережені результати, крок 2: файл результатів → вибір «продовжити» або «робота над помилками» */
+$('review-results-input').onchange = (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file || !pendingTest) return;
+  const qs = pendingTest;
+  pendingSaved = null;
+  $('saved-actions').hidden = true;
+  const fail = (msg) => { $('review-info').textContent = ''; $('review-error').textContent = msg; };
+  $('review-error').textContent = '';
+
+  readJsonFile(file, (readErr, data) => {
+    if (readErr) return fail(readErr);
+    if (!isObj(data) || !Array.isArray(data.answers))
+      return fail('Це не файл результатів: у ньому немає списку "answers".');
+    if (data.answers.length !== qs.length)
+      return fail(`У результатах ${data.answers.length} відповідей, а в тесті ${qs.length} питань.`);
+    if (data.fingerprint && data.fingerprint !== fingerprint(qs) &&
+        !confirm('Схоже, ці результати належать до іншого тесту. Продовжити все одно?'))
+      return fail('Скасовано: результати не збігаються з тестом.');
+
+    const old = {};
+    data.answers.forEach((a, i) => { if (a !== null && a !== undefined) old[i] = a; });
+    const answered = qs.filter((q, i) => handlers[q.type].isAnswered(q, old[i])).length;
+    const wrong = qs.map((q, i) => i).filter((i) => !handlers[qs[i].type].isCorrect(qs[i], old[i]));
+
+    /* Де продовжувати: збережена позиція, інакше перше питання без відповіді */
+    let current = Number.isInteger(data.current) && data.current >= 0 && data.current < qs.length
+      ? data.current
+      : qs.findIndex((q, i) => !handlers[q.type].isAnswered(q, old[i]));
+    if (current < 0) current = 0;
+
+    pendingSaved = { old, wrong, current };
+    $('review-info').textContent =
+      `Результати завантажено: відповідей ${answered} з ${qs.length}, ` +
+      `неправильних або без відповіді — ${wrong.length}.`;
+    $('btn-start-review').disabled = !wrong.length;
+    $('btn-start-review').title = wrong.length ? '' : 'У цих результатах немає помилок';
+    $('saved-actions').hidden = false;
+  });
+};
+
+/* Продовжити як звичайний тест із збереженими відповідями */
+$('btn-continue-saved').onclick = () => {
+  if (!pendingTest || !pendingSaved) return;
+  state = { ...newState(pendingTest), answers: { ...pendingSaved.old }, current: pendingSaved.current };
+  resetTransient();
+  saveState();
+  render();
+};
+
+/* Режим роботи над помилками */
+$('btn-start-review').onclick = () => {
+  if (!pendingTest || !pendingSaved || !pendingSaved.wrong.length) return;
+  const { old, wrong } = pendingSaved;
+  state = {
+    ...newState(pendingTest), mode: 'review', old, wrong,
+    current: wrong[0], answers: { ...old }
+  };
+  resetTransient();
+  saveState();
+  render();
+};
+
+/* ---------- Старт ---------- */
+function restoreState() {
+  const s = loadState();
+  if (!s || !Array.isArray(s.questions) || !s.questions.length) return;
+  try { if (validate(s.questions)) return; } catch (e) { return; }
+
+  const st = Object.assign(newState(s.questions), s);
+  const n = st.questions.length;
+  if (!isObj(st.answers)) st.answers = {};
+  if (!isObj(st.old)) st.old = {};
+  delete st.revealed;
+  st.wrong = (Array.isArray(st.wrong) ? st.wrong : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
+  st.mode = st.mode === 'review' && st.wrong.length ? 'review' : 'quiz';
+  st.finished = !!st.finished;
+  st.showCorrect = !!st.showCorrect;
+  st.checkOnNext = !!st.checkOnNext;
+  if (!Number.isInteger(st.current) || st.current < 0 || st.current >= n) st.current = 0;
+  if (st.mode === 'review' && !st.wrong.includes(st.current)) st.current = st.wrong[0];
+  state = st;
+}
+restoreState();
+render();

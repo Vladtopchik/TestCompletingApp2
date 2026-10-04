@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Тест з JSON</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="card">
+    <h1>Тест з JSON</h1>
+    <p id="save-warning" class="error" hidden>⚠ Прогрес не зберігається автоматично: тест завеликий для пам'яті браузера (найчастіше через зображення). Не закривайте сторінку або скачайте прогрес кнопкою «Зберегти прогрес».</p>
+
+    <section id="screen-load">
+      <p>Завантажте JSON-файл з питаннями.</p>
+      <input type="file" id="file-input" accept=".json,application/json">
+      <p id="error" class="error"></p>
+
+      <div class="review-setup">
+        <h2>Збережені результати</h2>
+        <p class="muted">Завантажте тест і раніше скачаний файл результатів (або прогресу). Потім можна продовжити тест або попрацювати над помилками.</p>
+        <label class="field">1. Тест
+          <input type="file" id="review-test-input" accept=".json,application/json">
+        </label>
+        <label class="field">2. Результати
+          <input type="file" id="review-results-input" accept=".json,application/json" disabled>
+        </label>
+        <p id="review-info" class="muted"></p>
+        <p id="review-error" class="error"></p>
+        <div id="saved-actions" class="actions" hidden>
+          <button id="btn-continue-saved">Продовжити тест</button>
+          <button id="btn-start-review" class="secondary">Робота над помилками</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-quiz" hidden>
+      <div class="progress"><div id="progress-bar"></div></div>
+      <p id="counter" class="muted"></p>
+      <div id="palette" class="palette"></div>
+      <div id="rv-legend" class="rv-legend" hidden>
+        <span class="tag ok" data-rv="reveal">правильно</span>
+        <span class="tag bad" data-rv="reveal">стара відповідь</span>
+        <span class="tag neutral" data-rv="hide">стара відповідь</span>
+        <span class="tag new">нова відповідь</span>
+      </div>
+      <h2 id="question"></h2>
+      <div id="question-images" class="q-images" hidden></div>
+      <div id="answer-area"></div>
+
+      <div id="reveal-row" class="reveal-row">
+        <button id="btn-reveal" class="secondary small">Показати відповідь</button>
+        <button id="btn-reset-answer" class="secondary small">Скинути відповідь</button>
+      </div>
+      <div id="reveal-box" class="reveal-box" hidden>
+        <div class="reveal-body">
+          <div id="reveal-text" class="line ok"></div>
+          <div id="reveal-mine" class="line bad" hidden></div>
+        </div>
+        <button id="btn-reveal-copy" class="secondary small">Копіювати</button>
+      </div>
+
+      <div class="row">
+        <button id="btn-prev" class="secondary">← Назад</button>
+        <button id="btn-next">Далі →</button>
+      </div>
+      <div class="toggles">
+        <label class="toggle">
+          <input type="checkbox" id="chk-check-next"> Показувати відповідь при натисканні «Далі»
+        </label>
+        <label id="rv-toggle" class="toggle">
+          <input type="checkbox" id="chk-show-correct"> Одразу показувати відповіді
+        </label>
+      </div>
+    </section>
+
+    <section id="screen-result" hidden>
+      <h2 id="score"></h2>
+      <div class="stats-bar" id="stats-bar">
+        <div id="bar-ok"></div><div id="bar-bad"></div>
+      </div>
+      <p id="stats-text" class="stats-text"></p>
+      <p id="review-stats" class="stats-text" hidden></p>
+      <div class="actions">
+        <button id="btn-copy-full" class="secondary">Копіювати результат</button>
+        <button id="btn-copy-marks" class="secondary">Копіювати лише ✅/❌</button>
+        <button id="btn-copy-mine" class="secondary">Копіювати мої відповіді</button>
+        <button id="btn-download" class="secondary">Скачати результати</button>
+        <button id="btn-show-answers" class="secondary">Показати відповіді</button>
+        <button id="btn-nmt" class="secondary">Показати бали НМТ</button>
+        <input type="file" id="nmt-input" accept=".json,application/json" hidden>
+      </div>
+      <div id="nmt-box" class="nmt-box" hidden>
+        <h3>Бали НМТ</h3>
+        <p id="nmt-error" class="error" hidden></p>
+        <div id="nmt-body"></div>
+      </div>
+      <div class="row"><button id="btn-continue" class="secondary">← Повернутися до тесту</button></div>
+      <ol id="result-list"></ol>
+    </section>
+
+    <section id="screen-answers" hidden>
+      <h2>Правильні відповіді</h2>
+      <div class="actions">
+        <button id="btn-copy-answers" class="secondary">Копіювати всі відповіді</button>
+        <button id="btn-answers-back" class="secondary">← Назад</button>
+      </div>
+      <ol id="answers-list"></ol>
+    </section>
+
+    <div class="row footer" id="footer" hidden>
+      <button id="btn-finish" class="secondary">Завершити зараз</button>
+      <button id="btn-save" class="secondary">Зберегти прогрес</button>
+      <button id="btn-copy-mine-f" class="secondary">Копіювати мої відповіді</button>
+      <button id="btn-answers" class="secondary">Усі відповіді</button>
+      <button id="btn-restart" class="secondary">Почати спочатку</button>
+      <button id="btn-new" class="danger">Очистити результат</button>
+    </div>
+  </main>
+  <div id="lightbox" class="lightbox" hidden><img id="lightbox-img" alt="Збільшене зображення"></div>
+  <script src="script.js"></script>
+</body>
+</html>
