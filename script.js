@@ -1152,9 +1152,8 @@ function renderQuiz() {
     : `Питання ${state.current + 1}/${total}`;
   if (topicOf(q)) $('counter').textContent += ` (${topicOf(q)})`;
   renderViewSwitch();
-  $('done-counter').textContent = `Виконано: ${answeredCount()} з ${total}`;
-  const done = state.questions.filter((x, i) => handlers[x.type].isAnswered(x, state.answers[i])).length;
-  $('answered-count').textContent = `Виконано: ${done} з ${total} (без відповіді: ${total - done})`;
+  const done = answeredCount();
+  $('done-counter').textContent = `Виконано: ${done} з ${total} (без відповіді: ${total - done})`;
   $('progress-bar').style.width = `${(pos / count) * 100}%`;
   $('question').textContent = q.question;
   renderImages(q);
@@ -1746,3 +1745,6 @@ if (!state.questions.length) {
   if (ctx.error) $('error').textContent = ctx.error;
   else if (ctx.path) autoload();
 }
+
+/* Маркер збірки: має збігатися з версією в index.html */
+$('js-ver').textContent = '20261005a';

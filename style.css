@@ -218,10 +218,11 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 .palette-items { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* Лічильник виконаних */
-.answered-count { margin-top: -8px; font-weight: 600; color: var(--text); }
 
 /* Лічильник виконаних, згортання блоків */
 .done-counter { margin: -6px 0 8px; font-weight: 600; }
 .view-buttons { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-right: auto; }
 .palette-title { cursor: pointer; user-select: none; padding: 2px 0; }
 .palette-title:hover, .palette-title:focus-visible { color: var(--accent); outline: none; }
+
+.version-line { margin: 16px 0 0; font-size: .75rem; text-align: right; }
