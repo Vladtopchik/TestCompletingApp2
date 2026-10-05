@@ -51,6 +51,7 @@ function writeMeta() {
 }
 
 function saveState() {
+  timerSync();
   const ok = lsSet(stateKey(), JSON.stringify(state));
   /* Найчастіше — переповнена пам'ять браузера (великі зображення). Старий зліпок прибираємо, щоб він не підмінив поточний тест */
   if (!ok) lsDel(stateKey());
@@ -601,7 +602,7 @@ const handlers = {
    checkOnNext: чекбокс «Показувати відповідь при натисканні Далі» (за замовчуванням вимкнено) */
 const newState = (questions = []) => ({
   questions, current: 0, answers: {}, finished: false,
-  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false, explainOnNext: false,
+  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false, explainOnNext: false, timer: defaultTimer(),
   view: 'order',  // 'order' — за порядком, 'topics' — палітра блоками за темами
   collapsed: {}   // згорнуті блоки палітри: 'all' (вигляд за порядком) і 't:<тема>' (вигляд за темами)
 });
@@ -760,7 +761,7 @@ const statsLine = (r) =>
 function fullReport() {
   const r = computeResults();
   const body = r.items.map((x) => `${x.i + 1}. ${x.q.question}\n${x.line}`).join('\n\n');
-  return `Результат: ${r.score} з ${r.total}\n${statsLine(r)}\n\n${body}`;
+  return `Результат: ${r.score} з ${r.total}\n${statsLine(r)}${timerResultText() ? '\n' + timerResultText() : ''}\n\n${body}`;
 }
 /* Короткий звіт: лише номер і ✅/❌ */
 function marksReport() {
@@ -784,7 +785,8 @@ function downloadResults() {
     app: 'json-quiz', version: 1, date: new Date().toISOString(),
     total: r.total, score: r.score, current: state.current, fingerprint: fingerprint(state.questions),
     answers: state.questions.map((q, i) => (state.answers[i] === undefined ? null : state.answers[i])),
-    results: r.items.map((x) => x.ok)
+    results: r.items.map((x) => x.ok),
+    timer: exportTimer()
   };
   const d = new Date();
   const p = (n) => String(n).padStart(2, '0');
@@ -1131,6 +1133,157 @@ function renderNmt() {
   r.warnings.forEach((w) => body.appendChild(el('div', 'nmt-warn', '⚠ ' + w)));
 }
 
+/* ---------- Таймер / секундомір ----------
+   state.timer: { stopped (true = не встановлений), type: 'timer'|'stopwatch', init (с), ms (поточне значення), ended }
+   Живий стан (біг/пауза) не зберігається: після завантаження таймер завжди на паузі. */
+const TMAX = 99 * 3600 + 59 * 60 + 59;   // межа: 99:59:59
+const TR = { t: null, t0: 0, base: 0, running: false, open: false };
+const isRun = () => TR.running && TR.t === state.timer;
+
+function defaultTimer() { return { stopped: true, type: 'timer', init: 0, ms: 0, ended: false }; }
+function normTimer(t) {
+  if (!isObj(t) || t.stopped !== false) return defaultTimer();
+  const lim = (v) => Math.min(TMAX * 1000, Math.max(0, Number.isFinite(v) ? v : 0));
+  return {
+    stopped: false, type: t.type === 'stopwatch' ? 'stopwatch' : 'timer',
+    init: Math.round(lim(t.init * 1000) / 1000), ms: lim(t.ms), ended: !!t.ended
+  };
+}
+function exportTimer() { return state.timer.stopped ? null : { ...state.timer, ms: tCur() }; }
+function timerSync() { if (state.timer && !state.timer.stopped && isRun()) state.timer.ms = tCur(); }
+
+function tCur() {
+  const t = state.timer;
+  if (t.stopped || !isRun()) return t.ms;
+  const d = Date.now() - TR.t0;
+  return t.type === 'timer' ? TR.base - d : TR.base + d;
+}
+const secOf = (ms, type) => Math.min(TMAX, Math.max(0, (type === 'timer' ? Math.ceil : Math.floor)(ms / 1000)));
+function fmtT(ms, type) {
+  const s = secOf(ms, type);
+  const p2 = (n) => String(n).padStart(2, '0');
+  return `${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(s % 60)}`;
+}
+/* Час вийшов: таймер дійшов до 0 або секундомір до межі */
+function tEnd(v) {
+  const t = state.timer;
+  t.ms = v; t.ended = true; TR.running = false;
+  saveState();
+}
+function tHitEnd(t, v) { return t.type === 'timer' ? v <= 0 : v >= TMAX * 1000; }
+function tTick() {
+  const t = state.timer;
+  if (t.stopped || !isRun()) return;
+  const v = tCur();
+  if (tHitEnd(t, v)) tEnd(t.type === 'timer' ? 0 : TMAX * 1000);
+  updateTimerUI();
+}
+function tSetRun(on) {
+  const t = state.timer;
+  if (t.stopped || t.ended || on === isRun()) return;
+  if (on) { TR.t = t; TR.base = t.ms; TR.t0 = Date.now(); TR.running = true; }
+  else { t.ms = tCur(); TR.running = false; }
+  saveState();
+  updateTimerUI();
+}
+function tReadInputs() {
+  const g = (id) => Math.min(99, Math.max(0, parseInt($(id).value, 10) || 0));
+  return Math.min(TMAX, g('timer-h') * 3600 + g('timer-m') * 60 + g('timer-s'));
+}
+function tErr(msg) { $('timer-err').textContent = msg || ''; $('timer-err').hidden = !msg; }
+function tStart() {
+  const type = document.querySelector('input[name="timer-type"]:checked').value;
+  const s = tReadInputs();
+  if (type === 'timer' && s <= 0) { tErr('Для таймера вкажіть час більший за нуль.'); return; }
+  tErr('');
+  state.timer = { stopped: false, type, init: s, ms: s * 1000, ended: false };
+  TR.t = state.timer; TR.base = state.timer.ms; TR.t0 = Date.now(); TR.running = true;
+  if (tHitEnd(state.timer, state.timer.ms)) tEnd(state.timer.ms); else saveState();
+  updateTimerUI();
+}
+/* Зупинити остаточно: таймер знову не встановлений */
+function tStop() {
+  TR.running = false;
+  state.timer = defaultTimer();
+  saveState();
+  updateTimerUI();
+}
+/* Скинути: початкове значення, пауза */
+function tResetInit() {
+  const t = state.timer;
+  if (t.stopped) return;
+  TR.running = false; t.ms = t.init * 1000; t.ended = false;
+  saveState();
+  updateTimerUI();
+}
+/* dir > 0 — на 10 с вперед за ходом часу (для таймера це зменшення), dir < 0 — назад */
+function tSeek(dir) {
+  const t = state.timer;
+  if (t.stopped || t.ended) return;
+  const v = Math.min(TMAX * 1000, Math.max(0, tCur() + (t.type === 'timer' ? -dir : dir) * 10000));
+  t.ms = v;
+  if (isRun()) { TR.base = v; TR.t0 = Date.now(); }
+  if (tHitEnd(t, v)) tEnd(v); else saveState();
+  updateTimerUI();
+}
+
+/* Підсумок для екрана результатів, звіту і файлу результатів */
+function timerResultText() {
+  const t = state.timer;
+  if (t.stopped) return '';
+  const ms = tCur();
+  if (t.type === 'timer') {
+    return t.ended ? `Таймер: час вийшов (було ${fmtT(t.init * 1000, 'stopwatch')})`
+      : `Таймер: тест пройдено за ${fmtT(t.init * 1000 - ms, 'stopwatch')}, залишилось ${fmtT(ms, 'timer')}`;
+  }
+  return `Секундомір: час проходження ${fmtT(Math.max(0, ms - t.init * 1000), 'stopwatch')}` + (t.ended ? ' (досягнуто межу)' : '');
+}
+
+function updateTimerUI() {
+  const t = state.timer;
+  const wrap = $('timer-wrap');
+  wrap.hidden = !(state.questions.length > 0 && !homeOpen);
+  if (wrap.hidden) return;
+  const set = !t.stopped;
+  const run = isRun();
+  $('timer-box').className = 'timer-box ' + (!set ? 't-off' : t.ended ? 't-end' : run ? 't-run' : 't-pause');
+  /* Прилипає, поки налаштований; скинутий, але з відкритим меню — теж лишається, доки меню не звернуть */
+  wrap.classList.toggle('sticky', set || TR.open);
+  const ms = tCur();
+  $('timer-time').hidden = !set;
+  if (set) $('timer-time').textContent = fmtT(ms, t.type);
+  $('timer-resume-mini').hidden = !(set && !run && !t.ended);
+  $('timer-reset-mini').hidden = !(set && t.ended);
+  $('timer-panel').hidden = !TR.open;
+  if (!TR.open) return;
+
+  const idle = !set || t.ended;
+  $('timer-start').textContent = set ? 'Зупинити' : 'Запустити';
+  $('timer-start').classList.toggle('danger', set);
+  $('timer-pause').textContent = run ? '⏸ Пауза' : '▶ Відновити';
+  ['timer-pause', 'timer-back', 'timer-fwd'].forEach((id) => { $(id).disabled = idle; });
+  $('timer-reset').disabled = !set;
+  document.querySelectorAll('input[name="timer-type"]').forEach((i) => { i.disabled = set; });
+  ['timer-h', 'timer-m', 'timer-s'].forEach((id) => { $(id).disabled = set; });
+  if (set) {
+    const s = secOf(ms, t.type);
+    $('timer-h').value = Math.floor(s / 3600);
+    $('timer-m').value = Math.floor(s / 60) % 60;
+    $('timer-s').value = s % 60;
+    document.querySelector(`input[name="timer-type"][value="${t.type}"]`).checked = true;
+    tErr('');
+  }
+}
+$('timer-toggle').onclick = () => { TR.open = !TR.open; updateTimerUI(); };
+$('timer-start').onclick = () => (state.timer.stopped ? tStart() : tStop());
+$('timer-pause').onclick = () => tSetRun(!isRun());
+$('timer-resume-mini').onclick = () => tSetRun(true);
+$('timer-reset-mini').onclick = tStop;
+$('timer-reset').onclick = tResetInit;
+$('timer-back').onclick = () => tSeek(-1);
+$('timer-fwd').onclick = () => tSeek(1);
+setInterval(tTick, 250);
+
 /* ---------- Екрани ---------- */
 function show(screen) {
   ['load', 'quiz', 'result', 'answers'].forEach((s) => { $('screen-' + s).hidden = screen !== s; });
@@ -1157,6 +1310,7 @@ function updateCtxInfo() {
 
 function render() {
   updateCtxInfo();
+  updateTimerUI();
   if (homeOpen && state.questions.length) { show('load'); renderHome(); renderSaves(); return; }
   homeOpen = false;
   renderHome();
@@ -1342,6 +1496,7 @@ function renderPalette() {
 
 function renderResults() {
   show('result');
+  tSetRun(false);   // після завершення тесту таймер зупиняється
   const r = computeResults();
   const list = $('result-list');
   list.innerHTML = '';
@@ -1373,6 +1528,9 @@ function renderResults() {
   } else {
     rs.hidden = true;
   }
+  const tt = timerResultText();
+  $('timer-result').textContent = tt;
+  $('timer-result').hidden = !tt;
   renderNmt();
 }
 
@@ -1446,6 +1604,7 @@ $('btn-restart').onclick = () => {
   answersOpen = false;
   state.finished = false;
   checked = false;
+  tResetInit();
   if (isReview()) {
     state.answers = { ...state.old };
     state.current = state.wrong[0];
@@ -1614,7 +1773,7 @@ function parseResultsData(qs, data) {
     ? data.current
     : qs.findIndex((q, i) => !handlers[q.type].isAnswered(q, old[i]));
   if (current < 0) current = 0;
-  return { old, wrong, current, answered, mismatch };
+  return { old, wrong, current, answered, mismatch, timer: normTimer(data.timer) };
 }
 
 /* Звичайний режим */
@@ -1671,7 +1830,7 @@ $('review-results-input').onchange = (e) => {
     if (r.error) return fail(r.error);
     if (r.mismatch && !confirm(MISMATCH_MSG)) return fail('Скасовано: результати не збігаються з тестом.');
 
-    pendingSaved = { old: r.old, wrong: r.wrong, current: r.current };
+    pendingSaved = { old: r.old, wrong: r.wrong, current: r.current, timer: r.timer };
     $('review-info').textContent =
       `Результати завантажено: відповідей ${r.answered} з ${qs.length}, ` +
       `неправильних або без відповіді — ${r.wrong.length}.`;
@@ -1684,7 +1843,7 @@ $('review-results-input').onchange = (e) => {
 /* Продовжити як звичайний тест із збереженими відповідями */
 $('btn-continue-saved').onclick = () => {
   if (!pendingTest || !pendingSaved) return;
-  state = { ...newState(pendingTest), answers: { ...pendingSaved.old }, current: pendingSaved.current };
+  state = { ...newState(pendingTest), answers: { ...pendingSaved.old }, current: pendingSaved.current, timer: pendingSaved.timer };
   resetTransient();
   saveState();
   render();
@@ -1724,6 +1883,7 @@ function restoreState() {
   if (!isObj(st.collapsed)) st.collapsed = {};
   if (!Number.isInteger(st.current) || st.current < 0 || st.current >= n) st.current = 0;
   if (st.mode === 'review' && !st.wrong.includes(st.current)) st.current = st.wrong[0];
+  st.timer = normTimer(s.timer);   // після завантаження таймер завжди на паузі
   state = st;
 }
 /* ---------- Автозавантаження за посиланням (?path=&mode=&results=) ---------- */
@@ -1766,7 +1926,7 @@ async function autoload() {
       };
     } else {
       state = newState(data);
-      if (saved) { state.answers = { ...saved.old }; state.current = saved.current; }
+      if (saved) { state.answers = { ...saved.old }; state.current = saved.current; state.timer = saved.timer; }
     }
     resetTransient();
     saveState();
@@ -1864,4 +2024,4 @@ if (!state.questions.length) {
 }
 
 /* Маркер збірки: має збігатися з версією в index.html */
-$('js-ver').textContent = '20261005d';
+$('js-ver').textContent = '20261005e';

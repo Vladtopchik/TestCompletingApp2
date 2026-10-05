@@ -4,10 +4,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Тест з JSON</title>
-  <link rel="stylesheet" href="style.css?v=20261005d">
+  <link rel="stylesheet" href="style.css?v=20261005e">
 </head>
 <body>
   <main class="card">
+    <div id="timer-wrap" class="timer-wrap" hidden>
+      <div id="timer-box" class="timer-box t-off">
+        <div class="timer-head">
+          <button id="timer-toggle" class="timer-icon" title="Таймер / секундомір" aria-label="Таймер / секундомір"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5M12 2.5V5"/></svg></button>
+          <span id="timer-time" class="timer-time" hidden>00:00:00</span>
+          <button id="timer-resume-mini" class="timer-mini" hidden title="Відновити">▶</button>
+          <button id="timer-reset-mini" class="timer-mini" hidden title="Скинути таймер">↺</button>
+        </div>
+        <div id="timer-panel" class="timer-panel" hidden>
+          <div class="timer-type">
+            <label><input type="radio" name="timer-type" value="stopwatch"> Секундомір (від 0 і далі)</label>
+            <label><input type="radio" name="timer-type" value="timer" checked> Таймер (до нуля)</label>
+          </div>
+          <div class="timer-inputs">
+            <input id="timer-h" type="number" min="0" max="99" value="0" aria-label="Години"> :
+            <input id="timer-m" type="number" min="0" max="99" value="0" aria-label="Хвилини"> :
+            <input id="timer-s" type="number" min="0" max="99" value="0" aria-label="Секунди">
+          </div>
+          <div class="timer-ctl">
+            <button id="timer-back" class="secondary">« 10 с</button>
+            <button id="timer-pause" class="secondary">⏸ Пауза</button>
+            <button id="timer-fwd" class="secondary">10 с »</button>
+          </div>
+          <div class="timer-ctl">
+            <button id="timer-start">Запустити</button>
+            <button id="timer-reset" class="secondary small">Скинути</button>
+          </div>
+          <p id="timer-err" class="error" hidden></p>
+        </div>
+      </div>
+    </div>
     <h1>Тест з JSON</h1>
     <p id="ctx-info" class="muted"></p>
     <p id="save-warning" class="error" hidden>⚠ Прогрес не зберігається автоматично: тест завеликий для пам'яті браузера (найчастіше через зображення). Не закривайте сторінку або скачайте прогрес кнопкою «Зберегти прогрес».</p>
@@ -123,6 +154,7 @@
         <div id="bar-ok"></div><div id="bar-bad"></div>
       </div>
       <p id="stats-text" class="stats-text"></p>
+      <p id="timer-result" class="stats-text" hidden></p>
       <p id="review-stats" class="stats-text" hidden></p>
       <div class="actions">
         <button id="btn-copy-full" class="secondary">Копіювати результат</button>
@@ -160,7 +192,7 @@
       <button id="btn-new" class="danger">Очистити результат</button>
       <button id="btn-wipe" class="danger">Стерти весь localStorage</button>
     </div>
-    <p class="muted version-line">Збірка: index 20261005d · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
+    <p class="muted version-line">Збірка: index 20261005e · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
   </main>
   <div id="explain-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="explain-title">
     <div class="modal-dialog">
@@ -170,6 +202,6 @@
     </div>
   </div>
   <div id="lightbox" class="lightbox" hidden><img id="lightbox-img" alt="Збільшене зображення"></div>
-  <script src="script.js?v=20261005d"></script>
+  <script src="script.js?v=20261005e"></script>
 </body>
 </html>

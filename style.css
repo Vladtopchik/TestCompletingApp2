@@ -247,3 +247,23 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 /* Кнопка «На головну» вгорі */
 .top-bar { margin: -8px 0 8px; }
 .top-bar .small { margin-top: 0; }
+
+/* Таймер / секундомір */
+.timer-wrap { position: relative; height: 0; z-index: 15; }
+.timer-wrap.sticky { position: sticky; top: 8px; }
+.timer-box { position: absolute; top: 0; right: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; color: var(--muted); }
+.timer-box.t-run { color: var(--accent); }
+.timer-box.t-pause { color: var(--ok); }
+.timer-box.t-end { color: var(--bad); }
+.timer-head { display: flex; align-items: center; gap: 6px; padding: 2px; background: var(--card); border: 1px solid var(--border); border-radius: 20px; }
+.timer-icon { padding: 4px 6px; line-height: 0; color: inherit; background: transparent; border: 0; }
+.timer-time { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.timer-mini { padding: 2px 8px; margin-right: 2px; font-size: .85rem; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 14px; }
+.timer-panel { width: min(300px, calc(100vw - 48px)); padding: 12px; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, .25); }
+.timer-type { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+.timer-inputs { display: flex; align-items: center; gap: 4px; margin: 10px 0; }
+.timer-inputs input { width: 3.6em; padding: 6px; font: inherit; text-align: center; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+.timer-inputs input:disabled { opacity: .7; }
+.timer-ctl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.timer-ctl button { padding: 6px 10px; font-size: .85rem; }
+.timer-ctl button.danger { background: transparent; color: var(--bad); border: 1px solid var(--bad); }
