@@ -601,7 +601,9 @@ const handlers = {
    checkOnNext: чекбокс «Показувати відповідь при натисканні Далі» (за замовчуванням вимкнено) */
 const newState = (questions = []) => ({
   questions, current: 0, answers: {}, finished: false,
-  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false
+  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false,
+  view: 'order',  // 'order' — за порядком, 'topics' — палітра блоками за темами
+  collapsed: {}   // згорнуті блоки палітри: 'all' (вигляд за порядком) і 't:<тема>' (вигляд за темами)
 });
 let state = newState();
 let answersOpen = false;   // відкритий екран «Правильні відповіді» (не зберігається)
@@ -610,6 +612,9 @@ let pendingSaved = null;   // розібрані збережені резуль
 let checked = false;       // відповідь на поточне питання показано; скидається при зміні питання (не зберігається)
 let lastQuizIdx = -1;      // питання, яке було намальовано востаннє
 const isReview = () => state.mode === 'review';
+/* Тема питання (поле "topic"); порожній рядок = без теми */
+const topicOf = (q) => (typeof q.topic === 'string' ? q.topic.trim() : '');
+const hasTopics = () => state.questions.some((q) => topicOf(q) !== '');
 
 /* ---------- Зображення до питання: "images": ["data:image/png;base64,...", ...] ---------- */
 const DATA_URL_RE = /^data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=\s_-]+$/i;
@@ -661,6 +666,8 @@ function validate(data) {
     const q = data[i];
     const n = i + 1;
     if (!q || typeof q.question !== 'string') return `Питання ${n}: немає поля "question".`;
+    if (q.topic !== undefined && q.topic !== null && typeof q.topic !== 'string')
+      return `Питання ${n}: поле "topic" має бути рядком.`;
     const imgErr = validateImages(q.images);
     if (imgErr) return `Питання ${n}: ${imgErr}`;
     q.type = TYPE_ALIASES[q.type] || q.type;
@@ -1142,7 +1149,12 @@ function renderQuiz() {
   show('quiz');
   $('counter').textContent = review
     ? `Робота над помилками: ${pos + 1} з ${count} (питання № ${state.current + 1})`
-    : `Питання ${state.current + 1} з ${total}`;
+    : `Питання ${state.current + 1}/${total}`;
+  if (topicOf(q)) $('counter').textContent += ` (${topicOf(q)})`;
+  renderViewSwitch();
+  $('done-counter').textContent = `Виконано: ${answeredCount()} з ${total}`;
+  const done = state.questions.filter((x, i) => handlers[x.type].isAnswered(x, state.answers[i])).length;
+  $('answered-count').textContent = `Виконано: ${done} з ${total} (без відповіді: ${total - done})`;
   $('progress-bar').style.width = `${(pos / count) * 100}%`;
   $('question').textContent = q.question;
   renderImages(q);
@@ -1178,29 +1190,104 @@ function renderQuiz() {
   $('btn-next').textContent = pos === count - 1 ? 'Завершити' : 'Далі →';
 }
 
+/* Скільки питань мають відповідь (непорожню) */
+const answeredCount = () => state.questions.filter((q, i) => handlers[q.type].isAnswered(q, state.answers[i])).length;
+
+function renderViewSwitch() {
+  $('view-buttons').hidden = !hasTopics();
+  $('view-order').classList.toggle('active', state.view !== 'topics');
+  $('view-topics').classList.toggle('active', state.view === 'topics');
+}
+function setView(v) {
+  if (state.view === v) return;
+  state.view = v;
+  saveState();
+  render();
+}
+$('view-order').onclick = () => setView('order');
+$('view-topics').onclick = () => setView('topics');
+
+function paletteButton(i) {
+  const review = isReview();
+  const q = state.questions[i];
+  const btn = document.createElement('button');
+  btn.textContent = i + 1;
+  btn.title = `Питання ${i + 1}` + (topicOf(q) ? ` (${topicOf(q)})` : '');
+  if (review) {
+    btn.classList.add('rv-wrong');
+    if (!sameAnswer(q, state.answers[i], state.old[i])) {
+      btn.classList.add('rv-changed');
+      btn.title += ' — відповідь змінено';
+    }
+  } else if (handlers[q.type].isAnswered(q, state.answers[i])) {
+    btn.classList.add('answered');
+  }
+  if (i === state.current) btn.classList.add('current');
+  btn.onclick = () => { state.current = i; saveState(); render(); };
+  return btn;
+}
+
+let paletteKeys = [];   // ключі блоків, намальованих зараз (для «Згорнути все»)
+
+function toggleBlock(key) {
+  if (state.collapsed[key]) delete state.collapsed[key]; else state.collapsed[key] = true;
+  saveState();
+  renderPalette();
+}
+$('btn-collapse-all').onclick = () => {
+  const allCollapsed = paletteKeys.length > 0 && paletteKeys.every((k) => state.collapsed[k]);
+  paletteKeys.forEach((k) => { if (allCollapsed) delete state.collapsed[k]; else state.collapsed[k] = true; });
+  saveState();
+  renderPalette();
+};
+
 function renderPalette() {
   const box = $('palette');
   box.innerHTML = '';
   const review = isReview();
   const indexes = review ? state.wrong : state.questions.map((q, i) => i);
-  indexes.forEach((i) => {
-    const q = state.questions[i];
-    const btn = document.createElement('button');
-    btn.textContent = i + 1;
-    btn.title = `Питання ${i + 1}`;
-    if (review) {
-      btn.classList.add('rv-wrong');
-      if (!sameAnswer(q, state.answers[i], state.old[i])) {
-        btn.classList.add('rv-changed');
-        btn.title += ' (відповідь змінено)';
-      }
-    } else if (handlers[q.type].isAnswered(q, state.answers[i])) {
-      btn.classList.add('answered');
-    }
-    if (i === state.current) btn.classList.add('current');
-    btn.onclick = () => { state.current = i; saveState(); render(); };
-    box.appendChild(btn);
+  const grouped = state.view === 'topics' && hasTopics();
+  box.classList.add('grouped');
+
+  /* Блоки: за порядком — один блок «Усі питання»; за темами — спочатку «Без теми», далі теми в порядку першої появи.
+     Усередині блоку номери за зростанням. Навігація «Далі/Назад» від цього не залежить і йде за порядком питань */
+  const blocks = [];
+  if (!grouped) {
+    blocks.push({ key: 'all', name: 'Усі питання', list: indexes });
+  } else {
+    const groups = new Map([['', []]]);
+    indexes.forEach((i) => {
+      const t = topicOf(state.questions[i]);
+      if (!groups.has(t)) groups.set(t, []);
+      groups.get(t).push(i);
+    });
+    groups.forEach((list, topic) => {
+      if (list.length) blocks.push({ key: 't:' + topic, name: topic || 'Без теми', list });
+    });
+  }
+  paletteKeys = blocks.map((x) => x.key);
+
+  blocks.forEach(({ key, name, list }) => {
+    const collapsed = !!state.collapsed[key];
+    const done = review ? 0 : list.filter((i) => handlers[state.questions[i].type].isAnswered(state.questions[i], state.answers[i])).length;
+    const head = el('div', 'palette-title', `${collapsed ? '▸' : '▾'} ${name} — ${review ? list.length : done + '/' + list.length}`);
+    head.setAttribute('role', 'button');
+    head.tabIndex = 0;
+    head.title = collapsed ? 'Розгорнути' : 'Згорнути';
+    head.onclick = () => toggleBlock(key);
+    head.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBlock(key); } };
+
+    const items = el('div', 'palette-items');
+    items.hidden = collapsed;
+    list.forEach((i) => items.appendChild(paletteButton(i)));
+
+    const g = el('div', 'palette-group');
+    g.append(head, items);
+    box.appendChild(g);
   });
+
+  const allCollapsed = paletteKeys.length > 0 && paletteKeys.every((k) => state.collapsed[k]);
+  $('btn-collapse-all').textContent = allCollapsed ? 'Розгорнути все' : 'Згорнути все';
 }
 
 function renderResults() {
@@ -1518,6 +1605,8 @@ function restoreState() {
   st.finished = !!st.finished;
   st.showCorrect = !!st.showCorrect;
   st.checkOnNext = !!st.checkOnNext;
+  st.view = st.view === 'topics' ? 'topics' : 'order';
+  if (!isObj(st.collapsed)) st.collapsed = {};
   if (!Number.isInteger(st.current) || st.current < 0 || st.current >= n) st.current = 0;
   if (st.mode === 'review' && !st.wrong.includes(st.current)) st.current = st.wrong[0];
   state = st;
