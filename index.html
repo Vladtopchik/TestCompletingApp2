@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Тест з JSON</title>
-  <link rel="stylesheet" href="style.css?v=20261005a">
+  <link rel="stylesheet" href="style.css?v=20261005d">
 </head>
 <body>
   <main class="card">
@@ -13,6 +13,14 @@
     <p id="save-warning" class="error" hidden>⚠ Прогрес не зберігається автоматично: тест завеликий для пам'яті браузера (найчастіше через зображення). Не закривайте сторінку або скачайте прогрес кнопкою «Зберегти прогрес».</p>
 
     <section id="screen-load">
+      <div id="home-active" class="home-active" hidden>
+        <p id="home-info" class="muted"></p>
+        <div class="actions">
+          <button id="btn-home-continue">Продовжити тест</button>
+          <button id="btn-home-reset" class="danger">Скинути тест</button>
+        </div>
+      </div>
+      <div id="load-block">
       <div id="url-box" class="url-box" hidden>
         <p id="url-status" class="muted"></p>
         <button id="btn-autoload" class="secondary">Завантажити за path ще раз</button>
@@ -20,8 +28,9 @@
       <p>Завантажте JSON-файл з питаннями.</p>
       <input type="file" id="file-input" accept=".json,application/json">
       <p id="error" class="error"></p>
+      </div>
 
-      <div class="review-setup">
+      <div id="review-block" class="review-setup">
         <h2>Збережені результати</h2>
         <p class="muted">Завантажте тест і раніше скачаний файл результатів (або прогресу). Потім можна продовжити тест або попрацювати над помилками.</p>
         <label class="field">1. Тест
@@ -64,6 +73,7 @@
         </span>
         <button id="btn-collapse-all" class="secondary small">Згорнути все</button>
       </div>
+      <div class="home-row"><button id="btn-home" class="secondary small">← На головну</button></div>
       <p id="counter" class="muted"></p>
       <p id="done-counter" class="done-counter"></p>
       <div id="palette" class="palette"></div>
@@ -80,6 +90,7 @@
       <div id="reveal-row" class="reveal-row">
         <button id="btn-reveal" class="secondary small">Показати відповідь</button>
         <button id="btn-reset-answer" class="secondary small">Скинути відповідь</button>
+        <button id="btn-explain" class="secondary small" hidden>Показати пояснення</button>
       </div>
       <div id="reveal-box" class="reveal-box" hidden>
         <div class="reveal-body">
@@ -96,6 +107,9 @@
       <div class="toggles">
         <label class="toggle">
           <input type="checkbox" id="chk-check-next"> Показувати відповідь при натисканні «Далі»
+        </label>
+        <label id="explain-toggle" class="toggle">
+          <input type="checkbox" id="chk-explain-next"> Показувати пояснення при натисканні «Далі»
         </label>
         <label id="rv-toggle" class="toggle">
           <input type="checkbox" id="chk-show-correct"> Одразу показувати відповіді
@@ -146,9 +160,16 @@
       <button id="btn-new" class="danger">Очистити результат</button>
       <button id="btn-wipe" class="danger">Стерти весь localStorage</button>
     </div>
-    <p class="muted version-line">Збірка: index 20261005a · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
+    <p class="muted version-line">Збірка: index 20261005d · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
   </main>
+  <div id="explain-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="explain-title">
+    <div class="modal-dialog">
+      <h3 id="explain-title">Пояснення</h3>
+      <div id="explain-text" class="explain-text"></div>
+      <div class="modal-actions"><button id="btn-explain-ok">ОК</button></div>
+    </div>
+  </div>
   <div id="lightbox" class="lightbox" hidden><img id="lightbox-img" alt="Збільшене зображення"></div>
-  <script src="script.js?v=20261005a"></script>
+  <script src="script.js?v=20261005d"></script>
 </body>
 </html>

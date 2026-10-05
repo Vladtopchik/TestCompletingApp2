@@ -601,7 +601,7 @@ const handlers = {
    checkOnNext: чекбокс «Показувати відповідь при натисканні Далі» (за замовчуванням вимкнено) */
 const newState = (questions = []) => ({
   questions, current: 0, answers: {}, finished: false,
-  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false,
+  mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false, explainOnNext: false,
   view: 'order',  // 'order' — за порядком, 'topics' — палітра блоками за темами
   collapsed: {}   // згорнуті блоки палітри: 'all' (вигляд за порядком) і 't:<тема>' (вигляд за темами)
 });
@@ -611,6 +611,9 @@ let pendingTest = null;    // тест, завантажений разом зі
 let pendingSaved = null;   // розібрані збережені результати { old, wrong, current } (не зберігається)
 let checked = false;       // відповідь на поточне питання показано; скидається при зміні питання (не зберігається)
 let lastQuizIdx = -1;      // питання, яке було намальовано востаннє
+let explShown = false;     // пояснення на поточному питанні вже відкривали (не зберігається, скидається при зміні питання)
+let homeOpen = false;      // відкрита головна сторінка поверх завантаженого тесту (не зберігається)
+let explainOpener = null;  // елемент, що мав фокус до відкриття вікна пояснення
 const isReview = () => state.mode === 'review';
 /* Тема питання (поле "topic"); порожній рядок = без теми */
 const topicOf = (q) => (typeof q.topic === 'string' ? q.topic.trim() : '');
@@ -678,6 +681,33 @@ function validate(data) {
   }
   return null;
 }
+
+/* Перевірка і впорядкування тесту.
+   "index" (ціле число ≥ 0) задає номер питання, 0 = перше. Питання без index ідуть у кінець у порядку файлу.
+   Однакові index лишаються поруч у порядку файлу. Далі скрізь працює лише відсортований масив:
+   відповіді, результати і прогрес прив'язані до позиції в ньому. */
+function prepareTest(data) {
+  const err = validate(data);
+  if (err) return { error: err };
+  for (let i = 0; i < data.length; i++) {
+    const q = data[i];
+    if (q.index !== undefined && q.index !== null && !(Number.isInteger(q.index) && q.index >= 0))
+      return { error: `Питання ${i + 1}: "index" має бути цілим числом, не меншим за 0.` };
+    if (q.explanation !== undefined && q.explanation !== null && typeof q.explanation !== 'string')
+      return { error: `Питання ${i + 1}: "explanation" має бути рядком.` };
+  }
+  const hasIdx = (q) => Number.isInteger(q.index);
+  const questions = data.map((q, pos) => ({ q, pos })).sort((a, b) => {
+    const ha = hasIdx(a.q), hb = hasIdx(b.q);
+    if (ha && hb) return a.q.index - b.q.index || a.pos - b.pos;
+    if (ha !== hb) return ha ? -1 : 1;
+    return a.pos - b.pos;
+  }).map((x) => x.q);
+  return { questions };
+}
+
+/* Пояснення до питання: непорожній рядок або '' */
+const explOf = (q) => (typeof q.explanation === 'string' ? q.explanation.trim() : '');
 
 function fingerprint(questions) {
   const s = questions.map((q) => q.question).join('\u0001');
@@ -1127,6 +1157,9 @@ function updateCtxInfo() {
 
 function render() {
   updateCtxInfo();
+  if (homeOpen && state.questions.length) { show('load'); renderHome(); renderSaves(); return; }
+  homeOpen = false;
+  renderHome();
   if (!state.questions.length || answersOpen || state.finished) lastQuizIdx = -1;
   if (!state.questions.length) { show('load'); renderSaves(); return; }
   if (answersOpen) return renderAnswers();
@@ -1134,9 +1167,25 @@ function render() {
   renderQuiz();
 }
 
+/* Головна: якщо тест завантажено — замість вибору файлів кнопки «Продовжити» і «Скинути» */
+function renderHome() {
+  const active = homeOpen && state.questions.length > 0;
+  $('home-active').hidden = !active;
+  $('load-block').hidden = active;
+  $('review-block').hidden = active;
+  if (active) {
+    const total = state.questions.length;
+    $('home-info').textContent =
+      `Тест завантажено: питань ${total}, виконано ${answeredCount()}` + (state.finished ? ' · завершено' : '') + '.';
+  }
+}
+
 function renderQuiz() {
   /* Показ відповіді діє лише поки ви на цьому питанні */
-  if (lastQuizIdx !== state.current) checked = !isReview() && !!state.showCorrect;
+  if (lastQuizIdx !== state.current) {
+    checked = !isReview() && !!state.showCorrect;
+    explShown = false;
+  }
   lastQuizIdx = state.current;
   const review = isReview();
   const total = state.questions.length;
@@ -1175,6 +1224,8 @@ function renderQuiz() {
   $('btn-reset-answer').disabled = !hasAnswer;
   $('btn-reveal').textContent = checked ? 'Сховати відповідь' : 'Показати відповідь';
   $('chk-check-next').checked = !!state.checkOnNext;
+  $('chk-explain-next').checked = !!state.explainOnNext;
+  $('btn-explain').hidden = !explOf(q);
   $('reveal-box').hidden = !checked;
   if (checked) {
     $('reveal-text').textContent = `Правильна відповідь:\n${h.text(q, q.correct)}`;
@@ -1345,8 +1396,32 @@ function wantsCheck() {
   if (state.showCorrect) return false;
   return sig(state.answers[state.current]) !== 'null';
 }
+/* Друге «Далі»: пояснення (якщо чекбокс увімкнено, пояснення є, відповідь дана і його ще не відкривали) */
+function wantsExplain() {
+  if (!state.explainOnNext || explShown) return false;
+  if (!explOf(state.questions[state.current])) return false;
+  return sig(state.answers[state.current]) !== 'null';
+}
+function openExplain() {
+  const q = state.questions[state.current];
+  const text = explOf(q);
+  if (!text) return;
+  explShown = true;
+  explainOpener = document.activeElement;
+  $('explain-text').textContent = text;
+  $('explain-modal').hidden = false;
+  $('btn-explain-ok').focus();
+}
+function closeExplain() {
+  $('explain-modal').hidden = true;
+  $('explain-text').textContent = '';
+  const o = explainOpener;
+  explainOpener = null;
+  if (o && o !== document.body && document.contains(o) && typeof o.focus === 'function') o.focus();
+}
 function step(dir) {
   if (dir > 0 && wantsCheck()) { checked = true; render(); return; }
+  if (dir > 0 && wantsExplain()) { openExplain(); return; }
   if (isReview()) {
     const list = state.wrong;
     const target = dir > 0
@@ -1391,15 +1466,54 @@ $('btn-continue').onclick = () => {
   saveState();
   render();
 };
-$('btn-new').onclick = () => {
-  if (!confirm(`Очистити результат для ${scopeText()}? Тест і відповіді буде видалено лише тут (інші сейви й посилання не зачіпаються).`)) return;
+function resetTest(message) {
+  if (!confirm(message)) return;
   clearState();
   state = newState();
   resetTransient();
+  checked = false;
+  explShown = false;
+  homeOpen = false;
+  $('save-warning').hidden = true;
   $('file-input').value = '';
   $('error').textContent = '';
   render();
+}
+$('btn-new').onclick = () =>
+  resetTest(`Очистити результат для ${scopeText()}? Тест і відповіді буде видалено лише тут (інші сейви й посилання не зачіпаються).`);
+
+/* Головна поверх завантаженого тесту */
+$('btn-home').onclick = () => { homeOpen = true; render(); };
+$('btn-home-continue').onclick = () => { homeOpen = false; render(); };
+$('btn-home-reset').onclick = () =>
+  resetTest(`Скинути тест для ${scopeText()}? Тест і весь прогрес буде видалено лише тут (інші сейви й посилання не зачіпаються), після чого можна завантажити новий тест.`);
+
+/* Пояснення */
+$('btn-explain').onclick = openExplain;
+$('btn-explain-ok').onclick = closeExplain;
+$('chk-explain-next').onchange = (e) => {
+  state.explainOnNext = e.target.checked;
+  saveState();
+  render();
 };
+
+/* Клавіатура. Вікно пояснення: Esc або Enter закривають його. Поза вікнами Enter = клік «Далі»,
+   якщо фокус не на елементі, який сам обробляє Enter (поле, кнопка, посилання, список) */
+document.addEventListener('keydown', (e) => {
+  if (!$('explain-modal').hidden) {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.repeat) closeExplain();
+    }
+    return;
+  }
+  if (e.key !== 'Enter' || e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
+  if ($('screen-quiz').hidden || !$('lightbox').hidden) return;
+  if (e.target && e.target.closest && e.target.closest('input, select, textarea, button, a, [tabindex]')) return;
+  e.preventDefault();
+  $('btn-next').click();
+}, true);
 
 $('btn-reveal').onclick = () => { checked = !checked; render(); };
 $('btn-reset-answer').onclick = () => {
@@ -1509,9 +1623,9 @@ $('file-input').onchange = (e) => {
   if (!file) return;
   readJsonFile(file, (readErr, data) => {
     if (readErr) { $('error').textContent = readErr; return; }
-    const err = validate(data);
-    if (err) { $('error').textContent = err; return; }
-    state = newState(data);
+    const prep = prepareTest(data);
+    if (prep.error) { $('error').textContent = prep.error; return; }
+    state = newState(prep.questions);
     resetTransient();
     $('error').textContent = '';
     saveState();
@@ -1531,11 +1645,12 @@ $('review-test-input').onchange = (e) => {
   $('review-info').textContent = '';
   $('review-error').textContent = '';
   readJsonFile(file, (readErr, data) => {
-    const err = readErr || validate(data);
+    const prep = readErr ? null : prepareTest(data);
+    const err = readErr || prep.error;
     if (err) { $('review-error').textContent = err; return; }
-    pendingTest = data;
+    pendingTest = prep.questions;
     $('review-results-input').disabled = false;
-    $('review-info').textContent = `Тест завантажено (питань: ${data.length}). Тепер оберіть файл результатів.`;
+    $('review-info').textContent = `Тест завантажено (питань: ${pendingTest.length}). Тепер оберіть файл результатів.`;
   });
 };
 
@@ -1604,6 +1719,7 @@ function restoreState() {
   st.finished = !!st.finished;
   st.showCorrect = !!st.showCorrect;
   st.checkOnNext = !!st.checkOnNext;
+  st.explainOnNext = !!st.explainOnNext;
   st.view = st.view === 'topics' ? 'topics' : 'order';
   if (!isObj(st.collapsed)) st.collapsed = {};
   if (!Number.isInteger(st.current) || st.current < 0 || st.current >= n) st.current = 0;
@@ -1630,9 +1746,10 @@ async function autoload() {
   $('error').textContent = '';
   $('url-status').textContent = 'Завантаження…';
   try {
-    const data = await fetchJson(absUrl(ctx.path), 'тест');
-    const err = validate(data);
-    if (err) throw new Error('Тест: ' + err);
+    const raw = await fetchJson(absUrl(ctx.path), 'тест');
+    const prep = prepareTest(raw);
+    if (prep.error) throw new Error('Тест: ' + prep.error);
+    const data = prep.questions;
 
     let saved = null;
     if (ctx.results) {
@@ -1747,4 +1864,4 @@ if (!state.questions.length) {
 }
 
 /* Маркер збірки: має збігатися з версією в index.html */
-$('js-ver').textContent = '20261005a';
+$('js-ver').textContent = '20261005d';

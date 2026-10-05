@@ -226,3 +226,24 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 .palette-title:hover, .palette-title:focus-visible { color: var(--accent); outline: none; }
 
 .version-line { margin: 16px 0 0; font-size: .75rem; text-align: right; }
+
+/* Пояснення (модальне вікно) */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center;
+  padding: 16px; background: rgba(0, 0, 0, .6);
+}
+.modal-dialog {
+  width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 20px;
+  background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 12px;
+}
+.modal-dialog h3 { margin: 0 0 10px; font-size: 1.1rem; }
+.explain-text { white-space: pre-wrap; line-height: 1.5; }
+.modal-actions { display: flex; justify-content: flex-end; margin-top: 16px; }
+
+/* Головна, коли тест уже завантажено */
+.home-active { margin-bottom: 16px; }
+.home-active p { margin: 0 0 6px; }
+
+/* Кнопка «На головну» вгорі */
+.top-bar { margin: -8px 0 8px; }
+.top-bar .small { margin-top: 0; }
