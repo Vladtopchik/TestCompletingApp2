@@ -1,34 +1,116 @@
-const STORE_KEY = 'json_quiz_v1';
 const $ = (id) => document.getElementById(id);
 
-/* ---------- Сховище (localStorage з запасним варіантом у пам'яті) ---------- */
-let memoryStore = null;
+/* ---------- Контекст із URL: ?path=&mode=&results= або ?save=N ----------
+   path     — шлях до JSON з тестом (відносний до сторінки або повний URL)
+   mode     — default (за замовчуванням) | error-correction (потребує results)
+   results  — шлях до JSON із раніше збереженими результатами
+   save     — номер сейву; якщо є, прогрес зберігається саме в ньому, а path/mode/results лише запускають порожній сейв
+   Кожен контекст має власний ключ у localStorage, тому різні посилання не заважають одне одному. */
+const NS = 'jq2:';
+const LEGACY_KEY = 'json_quiz_v1';   // старий єдиний ключ (переноситься при ручному завантаженні)
+const SAVES_KEY = NS + 'saves';      // список кнопок-сейвів: { next, items: [{ id, name }] }
+
+function absUrl(p) {
+  try { return new URL(p, location.href).href; } catch (e) { return p; }
+}
+
+const ctx = (() => {
+  const q = new URLSearchParams(location.search);
+  const rawSave = q.get('save');
+  const save = rawSave !== null && /^\d+$/.test(rawSave.trim()) ? Number(rawSave.trim()) : null;
+  const path = (q.get('path') || '').trim();
+  const mode = (q.get('mode') || 'default').trim();
+  const results = (q.get('results') || '').trim();
+  let error = '';
+  if (rawSave !== null && save === null) error = 'Параметр save має бути цілим числом, наприклад ?save=1.';
+  else if (mode !== 'default' && mode !== 'error-correction') error = 'Параметр mode має бути default або error-correction.';
+  else if (!path && (q.has('mode') || results)) error = 'Параметри mode і results працюють лише разом із path.';
+  else if (mode === 'error-correction' && !results) error = 'mode=error-correction потребує параметра results.';
+
+  /* Ключ залежить від того, що саме вказано: save, або path+mode+results (повні адреси), або ручне завантаження */
+  let key;
+  if (save !== null) key = 'save:' + save;
+  else if (path) key = 'url:' + JSON.stringify([absUrl(path), mode, results ? absUrl(results) : '']);
+  else key = 'manual';
+  return { save, path, mode, results, error, key };
+})();
+
+/* ---------- Сховище (localStorage) ---------- */
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
+const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+
+const stateKey = () => NS + ctx.key;
+const metaKey = (id) => NS + 'meta:' + id;
+
+/* Коротка довідка про сейв (для списку на початковому екрані), щоб не розбирати весь стан із зображеннями */
+function writeMeta() {
+  if (ctx.save === null) return;
+  const answered = state.questions.filter((q, i) => handlers[q.type].isAnswered(q, state.answers[i])).length;
+  lsSet(metaKey(ctx.save), JSON.stringify({ total: state.questions.length, answered, finished: !!state.finished, updated: Date.now() }));
+}
 
 function saveState() {
-  const raw = JSON.stringify(state);
-  let saved = true;
-  try {
-    localStorage.setItem(STORE_KEY, raw);
-  } catch (e) {
-    /* Найчастіше — переповнена пам'ять браузера (великі зображення). Старий зліпок прибираємо, щоб він не підмінив поточний тест */
-    memoryStore = raw;
-    saved = false;
-    try { localStorage.removeItem(STORE_KEY); } catch (e2) {}
-  }
+  const ok = lsSet(stateKey(), JSON.stringify(state));
+  /* Найчастіше — переповнена пам'ять браузера (великі зображення). Старий зліпок прибираємо, щоб він не підмінив поточний тест */
+  if (!ok) lsDel(stateKey());
+  else writeMeta();
   const warn = $('save-warning');
-  if (warn) warn.hidden = saved;
+  if (warn) warn.hidden = ok;
 }
 function loadState() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) {}
-  try { return memoryStore ? JSON.parse(memoryStore) : null; } catch (e) { return null; }
+  let raw = lsGet(stateKey());
+  if (!raw && ctx.key === 'manual') raw = lsGet(LEGACY_KEY);
+  try { return raw ? JSON.parse(raw) : null; } catch (e) { return null; }
 }
+/* Стирає лише поточну частину сховища (цей сейв / це посилання) */
 function clearState() {
-  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
-  memoryStore = null;
+  lsDel(stateKey());
+  if (ctx.save !== null) lsDel(metaKey(ctx.save));
+  if (ctx.key === 'manual') lsDel(LEGACY_KEY);
 }
+const scopeText = () =>
+  ctx.save !== null ? `сейву №${ctx.save}` : ctx.key === 'manual' ? 'ручного завантаження' : 'цього посилання';
+
+/* ---------- Кнопки-сейви: посилання ?save=N ---------- */
+function readSaves() {
+  try {
+    const s = JSON.parse(lsGet(SAVES_KEY));
+    if (isObj(s) && Array.isArray(s.items)) {
+      return {
+        next: Number.isInteger(s.next) && s.next > 0 ? s.next : 1,
+        items: s.items.filter((x) => isObj(x) && Number.isInteger(x.id) && x.id >= 0 && typeof x.name === 'string')
+      };
+    }
+  } catch (e) {}
+  return { next: 1, items: [] };
+}
+function writeSaves(s) { lsSet(SAVES_KEY, JSON.stringify(s)); }
+function readMeta(id) {
+  try { const m = JSON.parse(lsGet(metaKey(id))); return isObj(m) ? m : null; } catch (e) { return null; }
+}
+/* Новий номер ніколи не збігається з уже наявними даними, навіть якщо кнопку-сейв видалено */
+function nextSaveId(s) {
+  let max = -1;
+  s.items.forEach((x) => { max = Math.max(max, x.id); });
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      const m = k && k.startsWith(NS) ? /^(?:save|meta):(\d+)$/.exec(k.slice(NS.length)) : null;
+      if (m) max = Math.max(max, Number(m[1]));
+    }
+  } catch (e) {}
+  return Math.max(s.next, max + 1);
+}
+function createSave(name) {
+  const s = readSaves();
+  const id = nextSaveId(s);
+  s.items.push({ id, name: name.trim() || `Сейв ${id}` });
+  s.next = id + 1;
+  writeSaves(s);
+  return id;
+}
+const saveUrl = (id) => new URL('?save=' + id, location.href).href;
 
 /* ---------- Псевдоніми типів (альтернативні назви в JSON) ---------- */
 const TYPE_ALIASES = {
@@ -1022,9 +1104,24 @@ function show(screen) {
   $('btn-answers').hidden = screen === 'answers';
 }
 
+function updateCtxInfo() {
+  let t;
+  if (ctx.save !== null) {
+    const it = readSaves().items.find((x) => x.id === ctx.save);
+    t = `Сейв №${ctx.save}` + (it ? ` «${it.name}»` : '');
+  } else if (ctx.key === 'manual') {
+    t = 'Ручне завантаження файлу';
+  } else {
+    t = `Посилання: path=${ctx.path}` + (ctx.mode !== 'default' ? ` · mode=${ctx.mode}` : '') + (ctx.results ? ` · results=${ctx.results}` : '');
+  }
+  $('ctx-info').textContent = 'Прогрес зберігається: ' + t;
+  $('url-box').hidden = !ctx.path || ctx.error !== '';
+}
+
 function render() {
+  updateCtxInfo();
   if (!state.questions.length || answersOpen || state.finished) lastQuizIdx = -1;
-  if (!state.questions.length) return show('load');
+  if (!state.questions.length) { show('load'); renderSaves(); return; }
   if (answersOpen) return renderAnswers();
   if (state.finished) return renderResults();
   renderQuiz();
@@ -1184,7 +1281,7 @@ $('btn-next').onclick = () => step(1);
 $('btn-prev').onclick = () => step(-1);
 
 $('btn-restart').onclick = () => {
-  if (!confirm('Почати спочатку? Усі поточні відповіді буде стерто.')) return;
+  if (!confirm(`Почати спочатку для ${scopeText()}? Поточні відповіді буде стерто (інші сейви й посилання не зачіпаються).`)) return;
   answersOpen = false;
   state.finished = false;
   checked = false;
@@ -1209,7 +1306,7 @@ $('btn-continue').onclick = () => {
   render();
 };
 $('btn-new').onclick = () => {
-  if (!confirm('Очистити результат? Тест і всі відповіді буде видалено.')) return;
+  if (!confirm(`Очистити результат для ${scopeText()}? Тест і відповіді буде видалено лише тут (інші сейви й посилання не зачіпаються).`)) return;
   clearState();
   state = newState();
   resetTransient();
@@ -1298,6 +1395,28 @@ function resetTransient() {
   $('review-error').textContent = '';
 }
 
+/* ---------- Розбір файлу результатів (спільний для файлу і для ?results=) ---------- */
+const MISMATCH_MSG = 'Схоже, ці результати належать до іншого тесту. Продовжити все одно?';
+function parseResultsData(qs, data) {
+  if (!isObj(data) || !Array.isArray(data.answers))
+    return { error: 'Це не файл результатів: у ньому немає списку "answers".' };
+  if (data.answers.length !== qs.length)
+    return { error: `У результатах ${data.answers.length} відповідей, а в тесті ${qs.length} питань.` };
+  const mismatch = !!data.fingerprint && data.fingerprint !== fingerprint(qs);
+
+  const old = {};
+  data.answers.forEach((a, i) => { if (a !== null && a !== undefined) old[i] = a; });
+  const answered = qs.filter((q, i) => handlers[q.type].isAnswered(q, old[i])).length;
+  const wrong = qs.map((q, i) => i).filter((i) => !handlers[qs[i].type].isCorrect(qs[i], old[i]));
+
+  /* Де продовжувати: збережена позиція, інакше перше питання без відповіді */
+  let current = Number.isInteger(data.current) && data.current >= 0 && data.current < qs.length
+    ? data.current
+    : qs.findIndex((q, i) => !handlers[q.type].isAnswered(q, old[i]));
+  if (current < 0) current = 0;
+  return { old, wrong, current, answered, mismatch };
+}
+
 /* Звичайний режим */
 $('file-input').onchange = (e) => {
   const file = e.target.files[0];
@@ -1347,31 +1466,16 @@ $('review-results-input').onchange = (e) => {
 
   readJsonFile(file, (readErr, data) => {
     if (readErr) return fail(readErr);
-    if (!isObj(data) || !Array.isArray(data.answers))
-      return fail('Це не файл результатів: у ньому немає списку "answers".');
-    if (data.answers.length !== qs.length)
-      return fail(`У результатах ${data.answers.length} відповідей, а в тесті ${qs.length} питань.`);
-    if (data.fingerprint && data.fingerprint !== fingerprint(qs) &&
-        !confirm('Схоже, ці результати належать до іншого тесту. Продовжити все одно?'))
-      return fail('Скасовано: результати не збігаються з тестом.');
+    const r = parseResultsData(qs, data);
+    if (r.error) return fail(r.error);
+    if (r.mismatch && !confirm(MISMATCH_MSG)) return fail('Скасовано: результати не збігаються з тестом.');
 
-    const old = {};
-    data.answers.forEach((a, i) => { if (a !== null && a !== undefined) old[i] = a; });
-    const answered = qs.filter((q, i) => handlers[q.type].isAnswered(q, old[i])).length;
-    const wrong = qs.map((q, i) => i).filter((i) => !handlers[qs[i].type].isCorrect(qs[i], old[i]));
-
-    /* Де продовжувати: збережена позиція, інакше перше питання без відповіді */
-    let current = Number.isInteger(data.current) && data.current >= 0 && data.current < qs.length
-      ? data.current
-      : qs.findIndex((q, i) => !handlers[q.type].isAnswered(q, old[i]));
-    if (current < 0) current = 0;
-
-    pendingSaved = { old, wrong, current };
+    pendingSaved = { old: r.old, wrong: r.wrong, current: r.current };
     $('review-info').textContent =
-      `Результати завантажено: відповідей ${answered} з ${qs.length}, ` +
-      `неправильних або без відповіді — ${wrong.length}.`;
-    $('btn-start-review').disabled = !wrong.length;
-    $('btn-start-review').title = wrong.length ? '' : 'У цих результатах немає помилок';
+      `Результати завантажено: відповідей ${r.answered} з ${qs.length}, ` +
+      `неправильних або без відповіді — ${r.wrong.length}.`;
+    $('btn-start-review').disabled = !r.wrong.length;
+    $('btn-start-review').title = r.wrong.length ? '' : 'У цих результатах немає помилок';
     $('saved-actions').hidden = false;
   });
 };
@@ -1418,5 +1522,138 @@ function restoreState() {
   if (st.mode === 'review' && !st.wrong.includes(st.current)) st.current = st.wrong[0];
   state = st;
 }
+/* ---------- Автозавантаження за посиланням (?path=&mode=&results=) ---------- */
+let autoloading = false;
+async function fetchJson(url, what) {
+  let res;
+  try {
+    res = await fetch(url, { cache: 'no-store' });
+  } catch (e) {
+    throw new Error(`Не вдалося завантажити ${what}: ${url}. ` +
+      (location.protocol === 'file:' ? 'Сторінку відкрито як файл — для параметра path потрібен http(s)-сервер.' : 'Перевірте шлях і CORS.'));
+  }
+  if (!res.ok) throw new Error(`${what}: сервер відповів ${res.status} (${url}).`);
+  try { return await res.json(); } catch (e) { throw new Error(`${what}: некоректний JSON (${e.message}).`); }
+}
+
+async function autoload() {
+  if (autoloading || !ctx.path || ctx.error) return;
+  autoloading = true;
+  $('error').textContent = '';
+  $('url-status').textContent = 'Завантаження…';
+  try {
+    const data = await fetchJson(absUrl(ctx.path), 'тест');
+    const err = validate(data);
+    if (err) throw new Error('Тест: ' + err);
+
+    let saved = null;
+    if (ctx.results) {
+      saved = parseResultsData(data, await fetchJson(absUrl(ctx.results), 'результати'));
+      if (saved.error) throw new Error('Результати: ' + saved.error);
+      if (saved.mismatch && !confirm(MISMATCH_MSG)) throw new Error('Скасовано: результати не збігаються з тестом.');
+    }
+
+    if (ctx.mode === 'error-correction') {
+      if (!saved.wrong.length) throw new Error('У цих результатах немає помилок.');
+      state = {
+        ...newState(data), mode: 'review', old: saved.old, wrong: saved.wrong,
+        current: saved.wrong[0], answers: { ...saved.old }
+      };
+    } else {
+      state = newState(data);
+      if (saved) { state.answers = { ...saved.old }; state.current = saved.current; }
+    }
+    resetTransient();
+    saveState();
+    $('url-status').textContent = '';
+    render();
+  } catch (e) {
+    $('url-status').textContent = '';
+    $('error').textContent = e.message;
+  } finally {
+    autoloading = false;
+  }
+}
+$('btn-autoload').onclick = autoload;
+
+/* ---------- Сейви на початковому екрані ---------- */
+function renderSaves() {
+  const list = $('saves-list');
+  list.innerHTML = '';
+  const s = readSaves();
+  $('saves-empty').hidden = s.items.length > 0;
+  $('btn-saves-clear').hidden = !s.items.length;
+
+  s.items.forEach((it) => {
+    const li = el('li', 'save-item');
+    const a = el('a', 'save-link', it.name);
+    a.href = '?save=' + it.id;
+    const meta = readMeta(it.id);
+    const info = el('span', 'muted save-info',
+      `?save=${it.id}` + (meta ? ` · ${meta.answered}/${meta.total}${meta.finished ? ' · завершено' : ''}` : ' · порожній'));
+
+    const copy = el('button', 'secondary small', 'Копіювати посилання');
+    copy.onclick = (e) => copyText(saveUrl(it.id), e.currentTarget);
+
+    const rename = el('button', 'secondary small', 'Перейменувати');
+    rename.onclick = () => {
+      const name = prompt('Нова назва сейву:', it.name);
+      if (name === null || !name.trim()) return;
+      const cur = readSaves();
+      const x = cur.items.find((v) => v.id === it.id);
+      if (x) { x.name = name.trim(); writeSaves(cur); }
+      render();
+    };
+
+    const remove = el('button', 'secondary small', '✕');
+    remove.title = 'Прибрати кнопку (збережений прогрес лишається за посиланням ?save=' + it.id + ')';
+    remove.onclick = () => {
+      if (!confirm(`Прибрати кнопку «${it.name}»? Прогрес не видаляється, сейв відкриється за посиланням ?save=${it.id}.`)) return;
+      const cur = readSaves();
+      cur.items = cur.items.filter((v) => v.id !== it.id);
+      writeSaves(cur);
+      render();
+    };
+
+    li.append(a, info, copy, rename, remove);
+    list.appendChild(li);
+  });
+}
+
+$('btn-save-create').onclick = () => {
+  createSave($('save-name').value);
+  $('save-name').value = '';
+  render();
+};
+$('save-name').onkeydown = (e) => { if (e.key === 'Enter') $('btn-save-create').click(); };
+
+$('btn-saves-clear').onclick = () => {
+  if (!confirm('Видалити всі кнопки-сейви? Збережений прогрес НЕ видаляється: його можна відкрити за посиланням ?save=N.')) return;
+  const cur = readSaves();
+  cur.items = [];
+  writeSaves(cur);
+  render();
+};
+
+/* ---------- Повне очищення localStorage ---------- */
+function wipeAll() {
+  if (!confirm('Стерти ВЕСЬ localStorage цього сайту?\n\nБуде видалено прогрес усіх сейвів і посилань, усі кнопки-сейви та всі збережені тести ' +
+               '(а також дані інших сторінок на цьому самому домені). Дію не можна скасувати.')) return;
+  try { localStorage.clear(); } catch (e) {}
+  state = newState();
+  resetTransient();
+  checked = false;
+  $('save-warning').hidden = true;
+  $('error').textContent = '';
+  $('file-input').value = '';
+  render();
+}
+$('btn-wipe').onclick = wipeAll;
+$('btn-wipe-main').onclick = wipeAll;
+
 restoreState();
 render();
+if (!state.questions.length) {
+  if (ctx.error) $('error').textContent = ctx.error;
+  else if (ctx.path) autoload();
+}

@@ -192,3 +192,18 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 .nmt-types { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
 .nmt-warn { margin-top: 6px; font-size: .9rem; color: var(--change); }
 @media (max-width: 520px) { .nmt-row { flex-direction: column; gap: 0; } .nmt-label { flex-basis: auto; } }
+
+/* Контекст, автозавантаження, сейви */
+#ctx-info { margin: -8px 0 12px; word-break: break-all; }
+.url-box { margin-bottom: 16px; }
+.url-box p { margin: 0 0 6px; }
+.saves-setup { margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--border); }
+.saves-setup h2 { margin: 0 0 4px; }
+.saves-setup code { padding: 1px 5px; background: var(--bg); border-radius: 4px; }
+.save-create { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.save-create .order-input { flex: 1; min-width: 12em; width: auto; padding: 10px; }
+.saves-list { list-style: none; margin: 0; padding: 0; }
+.save-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.save-item button { margin-top: 0; }
+.save-link { font-weight: 600; color: var(--accent); }
+.save-info { margin-right: auto; font-size: .85rem; }

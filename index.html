@@ -9,9 +9,14 @@
 <body>
   <main class="card">
     <h1>Тест з JSON</h1>
+    <p id="ctx-info" class="muted"></p>
     <p id="save-warning" class="error" hidden>⚠ Прогрес не зберігається автоматично: тест завеликий для пам'яті браузера (найчастіше через зображення). Не закривайте сторінку або скачайте прогрес кнопкою «Зберегти прогрес».</p>
 
     <section id="screen-load">
+      <div id="url-box" class="url-box" hidden>
+        <p id="url-status" class="muted"></p>
+        <button id="btn-autoload" class="secondary">Завантажити за path ще раз</button>
+      </div>
       <p>Завантажте JSON-файл з питаннями.</p>
       <input type="file" id="file-input" accept=".json,application/json">
       <p id="error" class="error"></p>
@@ -30,6 +35,21 @@
         <div id="saved-actions" class="actions" hidden>
           <button id="btn-continue-saved">Продовжити тест</button>
           <button id="btn-start-review" class="secondary">Робота над помилками</button>
+        </div>
+      </div>
+
+      <div class="saves-setup">
+        <h2>Сейви</h2>
+        <p class="muted">Кожен сейв — це посилання <code>?save=N</code> з власним збереженим прогресом. Його можна відкрити з кнопки або вставити в закладки.</p>
+        <div class="save-create">
+          <input id="save-name" class="order-input" type="text" maxlength="60" placeholder="Назва (необов'язково)">
+          <button id="btn-save-create">Створити сейв</button>
+        </div>
+        <ul id="saves-list" class="saves-list"></ul>
+        <p id="saves-empty" class="muted">Кнопок-сейвів поки немає.</p>
+        <div class="actions">
+          <button id="btn-saves-clear" class="secondary">Видалити всі кнопки-сейви</button>
+          <button id="btn-wipe-main" class="danger">Стерти весь localStorage</button>
         </div>
       </div>
     </section>
@@ -115,6 +135,7 @@
       <button id="btn-answers" class="secondary">Усі відповіді</button>
       <button id="btn-restart" class="secondary">Почати спочатку</button>
       <button id="btn-new" class="danger">Очистити результат</button>
+      <button id="btn-wipe" class="danger">Стерти весь localStorage</button>
     </div>
   </main>
   <div id="lightbox" class="lightbox" hidden><img id="lightbox-img" alt="Збільшене зображення"></div>
