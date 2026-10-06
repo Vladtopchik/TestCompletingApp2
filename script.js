@@ -47,7 +47,7 @@ const metaKey = (id) => NS + 'meta:' + id;
 function writeMeta() {
   if (ctx.save === null) return;
   const answered = state.questions.filter((q, i) => handlers[q.type].isAnswered(q, state.answers[i])).length;
-  lsSet(metaKey(ctx.save), JSON.stringify({ total: state.questions.length, answered, finished: !!state.finished, updated: Date.now() }));
+  lsSet(metaKey(ctx.save), JSON.stringify({ total: state.questions.length, answered, finished: !!state.finished, fileName: state.fileName || '', updated: Date.now() }));
 }
 
 function saveState() {
@@ -227,7 +227,12 @@ function markCheck(btn, f) {
     tags.append(tagEl('ok', '✓ правильно'));
   } else if (f.now) {
     btn.classList.add('rv-bad');
-    tags.append(tagEl('bad', '✗ твоя'));
+    tags.append(tagEl('bad', '✗ неправильно'));
+  }
+  /* Ваш вибір — оранжева обводка і мітка «твоя» (як у режимі помилок, але без «старої» відповіді) */
+  if (f.now) {
+    btn.classList.add('rv-new');
+    tags.append(tagEl('new', 'твоя'));
   }
   if (tags.children.length) btn.append(tags);
 }
@@ -382,10 +387,14 @@ const handlers = {
           const right = String(q.correct[k]);
           const nowV = has(ans, k) ? String(ans[k]) : '';
           const notes = el('div', 'rv-notes');
+          if (nowV) row.classList.add('rv-new');   // оранжева обводка вашого вибору
           if (nowV === right) {
             row.classList.add('rv-ok');
           } else {
-            if (nowV) row.classList.add('rv-bad');
+            if (nowV) {
+              row.classList.add('rv-bad');
+              notes.append(el('div', 'new', `Твоя відповідь: ${mt(q, nowV)}`));
+            }
             notes.append(el('div', 'ok', `Правильно: ${mt(q, right)}`));
           }
           if (notes.children.length) row.append(notes);
@@ -474,6 +483,12 @@ const handlers = {
           commit(arr);
         });
         if ((chk || (rv && rv.reveal)) && pos >= 0) btn.classList.add(q.correct[pos] === k ? 'rv-ok' : 'rv-bad');
+        if (chk && !rv && pos >= 0) {
+          btn.classList.add('rv-new');
+          const tg = el('span', 'tags');
+          tg.append(tagEl(q.correct[pos] === k ? 'ok' : 'bad', q.correct[pos] === k ? '✓ правильно' : '✗ неправильно'), tagEl('new', 'твоя'));
+          btn.append(tg);
+        }
 
         /* Вибір конкретної позиції; зайняту позицію не приймаємо */
         const select = document.createElement('select');
@@ -602,12 +617,14 @@ const handlers = {
    checkOnNext: чекбокс «Показувати відповідь при натисканні Далі» (за замовчуванням вимкнено) */
 const newState = (questions = []) => ({
   questions, current: 0, answers: {}, finished: false,
+  fileName: '',   // назва завантаженого файлу з тестом
   mode: 'quiz', old: {}, wrong: [], showCorrect: false, checkOnNext: false, explainOnNext: false, timer: defaultTimer(),
   view: 'order',  // 'order' — за порядком, 'topics' — палітра блоками за темами
   collapsed: {}   // згорнуті блоки палітри: 'all' (вигляд за порядком) і 't:<тема>' (вигляд за темами)
 });
 let state = newState();
 let answersOpen = false;   // відкритий екран «Правильні відповіді» (не зберігається)
+let pendingTestName = '';  // назва файлу тесту, завантаженого для збережених результатів (не зберігається)
 let pendingTest = null;    // тест, завантажений разом зі збереженими результатами (не зберігається)
 let pendingSaved = null;   // розібрані збережені результати { old, wrong, current } (не зберігається)
 let checked = false;       // відповідь на поточне питання показано; скидається при зміні питання (не зберігається)
@@ -1137,7 +1154,7 @@ function renderNmt() {
    state.timer: { stopped (true = не встановлений), type: 'timer'|'stopwatch', init (с), ms (поточне значення), ended }
    Живий стан (біг/пауза) не зберігається: після завантаження таймер завжди на паузі. */
 const TMAX = 99 * 3600 + 59 * 60 + 59;   // межа: 99:59:59
-const TR = { t: null, t0: 0, base: 0, running: false, open: false };
+const TR = { t: null, synced: null, t0: 0, base: 0, running: false, open: false };
 const isRun = () => TR.running && TR.t === state.timer;
 
 function defaultTimer() { return { stopped: true, type: 'timer', init: 0, ms: 0, ended: false }; }
@@ -1197,7 +1214,7 @@ function tStart() {
   if (type === 'timer' && s <= 0) { tErr('Для таймера вкажіть час більший за нуль.'); return; }
   tErr('');
   state.timer = { stopped: false, type, init: s, ms: s * 1000, ended: false };
-  TR.t = state.timer; TR.base = state.timer.ms; TR.t0 = Date.now(); TR.running = true;
+  TR.t = state.timer; TR.synced = state.timer; TR.base = state.timer.ms; TR.t0 = Date.now(); TR.running = true;
   if (tHitEnd(state.timer, state.timer.ms)) tEnd(state.timer.ms); else saveState();
   updateTimerUI();
 }
@@ -1208,12 +1225,19 @@ function tStop() {
   saveState();
   updateTimerUI();
 }
-/* Скинути: початкове значення, пауза */
-function tResetInit() {
+/* Скинути: повернути початкове значення (fromFields — взяти його з полів вводу); біг/пауза зберігаються */
+function tResetInit(fromFields) {
   const t = state.timer;
   if (t.stopped) return;
-  TR.running = false; t.ms = t.init * 1000; t.ended = false;
-  saveState();
+  if (fromFields) {
+    const s = tReadInputs();
+    if (t.type === 'timer' && s <= 0) { tErr('Для таймера вкажіть час більший за нуль.'); return; }
+    tErr('');
+    t.init = s;
+  }
+  t.ms = t.init * 1000; t.ended = false;
+  if (isRun()) { TR.base = t.ms; TR.t0 = Date.now(); }
+  if (tHitEnd(t, t.ms)) tEnd(t.ms); else saveState();
   updateTimerUI();
 }
 /* dir > 0 — на 10 с вперед за ходом часу (для таймера це зменшення), dir < 0 — назад */
@@ -1258,28 +1282,32 @@ function updateTimerUI() {
   if (!TR.open) return;
 
   const idle = !set || t.ended;
-  $('timer-start').textContent = set ? 'Зупинити' : 'Запустити';
+  $('timer-start').textContent = set ? '⬢ Зупинити' : '▶ Запустити';
   $('timer-start').classList.toggle('danger', set);
   $('timer-pause').textContent = run ? '⏸ Пауза' : '▶ Відновити';
   ['timer-pause', 'timer-back', 'timer-fwd'].forEach((id) => { $(id).disabled = idle; });
   $('timer-reset').disabled = !set;
   document.querySelectorAll('input[name="timer-type"]').forEach((i) => { i.disabled = set; });
-  ['timer-h', 'timer-m', 'timer-s'].forEach((id) => { $(id).disabled = set; });
-  if (set) {
-    const s = secOf(ms, t.type);
-    $('timer-h').value = Math.floor(s / 3600);
-    $('timer-m').value = Math.floor(s / 60) % 60;
-    $('timer-s').value = s % 60;
+  if (set && TR.synced !== t) {   // поля тримають початкове значення і не біжать разом із таймером
+    TR.synced = t;
+    $('timer-h').value = Math.floor(t.init / 3600);
+    $('timer-m').value = Math.floor(t.init / 60) % 60;
+    $('timer-s').value = t.init % 60;
     document.querySelector(`input[name="timer-type"][value="${t.type}"]`).checked = true;
-    tErr('');
   }
 }
 $('timer-toggle').onclick = () => { TR.open = !TR.open; updateTimerUI(); };
+/* Клік будь-де поза таймером ховає меню налаштувань */
+document.addEventListener('pointerdown', (e) => {
+  if (!TR.open || $('timer-box').contains(e.target)) return;
+  TR.open = false;
+  updateTimerUI();
+});
 $('timer-start').onclick = () => (state.timer.stopped ? tStart() : tStop());
 $('timer-pause').onclick = () => tSetRun(!isRun());
 $('timer-resume-mini').onclick = () => tSetRun(true);
 $('timer-reset-mini').onclick = tStop;
-$('timer-reset').onclick = tResetInit;
+$('timer-reset').onclick = () => tResetInit(true);
 $('timer-back').onclick = () => tSeek(-1);
 $('timer-fwd').onclick = () => tSeek(1);
 setInterval(tTick, 250);
@@ -1330,6 +1358,7 @@ function renderHome() {
   if (active) {
     const total = state.questions.length;
     $('home-info').textContent =
+      (state.fileName ? `Файл: ${state.fileName}. ` : '') +
       `Тест завантажено: питань ${total}, виконано ${answeredCount()}` + (state.finished ? ' · завершено' : '') + '.';
   }
 }
@@ -1350,6 +1379,8 @@ function renderQuiz() {
   const count = review ? state.wrong.length : total;
 
   show('quiz');
+  $('file-info').textContent = state.fileName ? `Файл: ${state.fileName}` : '';
+  $('file-info').hidden = !state.fileName;
   $('counter').textContent = review
     ? `Робота над помилками: ${pos + 1} з ${count} (питання № ${state.current + 1})`
     : `Питання ${state.current + 1}/${total}`;
@@ -1785,6 +1816,7 @@ $('file-input').onchange = (e) => {
     const prep = prepareTest(data);
     if (prep.error) { $('error').textContent = prep.error; return; }
     state = newState(prep.questions);
+    state.fileName = file.name;
     resetTransient();
     $('error').textContent = '';
     saveState();
@@ -1808,6 +1840,7 @@ $('review-test-input').onchange = (e) => {
     const err = readErr || prep.error;
     if (err) { $('review-error').textContent = err; return; }
     pendingTest = prep.questions;
+    pendingTestName = file.name;
     $('review-results-input').disabled = false;
     $('review-info').textContent = `Тест завантажено (питань: ${pendingTest.length}). Тепер оберіть файл результатів.`;
   });
@@ -1843,7 +1876,7 @@ $('review-results-input').onchange = (e) => {
 /* Продовжити як звичайний тест із збереженими відповідями */
 $('btn-continue-saved').onclick = () => {
   if (!pendingTest || !pendingSaved) return;
-  state = { ...newState(pendingTest), answers: { ...pendingSaved.old }, current: pendingSaved.current, timer: pendingSaved.timer };
+  state = { ...newState(pendingTest), fileName: pendingTestName, answers: { ...pendingSaved.old }, current: pendingSaved.current, timer: pendingSaved.timer };
   resetTransient();
   saveState();
   render();
@@ -1854,7 +1887,7 @@ $('btn-start-review').onclick = () => {
   if (!pendingTest || !pendingSaved || !pendingSaved.wrong.length) return;
   const { old, wrong } = pendingSaved;
   state = {
-    ...newState(pendingTest), mode: 'review', old, wrong,
+    ...newState(pendingTest), fileName: pendingTestName, mode: 'review', old, wrong,
     current: wrong[0], answers: { ...old }
   };
   resetTransient();
@@ -1876,6 +1909,7 @@ function restoreState() {
   st.wrong = (Array.isArray(st.wrong) ? st.wrong : []).filter((i) => Number.isInteger(i) && i >= 0 && i < n);
   st.mode = st.mode === 'review' && st.wrong.length ? 'review' : 'quiz';
   st.finished = !!st.finished;
+  st.fileName = typeof s.fileName === 'string' ? s.fileName : '';
   st.showCorrect = !!st.showCorrect;
   st.checkOnNext = !!st.checkOnNext;
   st.explainOnNext = !!st.explainOnNext;
@@ -1888,6 +1922,13 @@ function restoreState() {
 }
 /* ---------- Автозавантаження за посиланням (?path=&mode=&results=) ---------- */
 let autoloading = false;
+/* Назва файлу з адреси: останній сегмент шляху без параметрів */
+function urlFileName(p) {
+  try {
+    const seg = new URL(p, location.href).pathname.split('/').filter(Boolean).pop() || '';
+    return decodeURIComponent(seg) || p;
+  } catch (e) { return p; }
+}
 async function fetchJson(url, what) {
   let res;
   try {
@@ -1921,11 +1962,12 @@ async function autoload() {
     if (ctx.mode === 'error-correction') {
       if (!saved.wrong.length) throw new Error('У цих результатах немає помилок.');
       state = {
-        ...newState(data), mode: 'review', old: saved.old, wrong: saved.wrong,
+        ...newState(data), fileName: urlFileName(ctx.path), mode: 'review', old: saved.old, wrong: saved.wrong,
         current: saved.wrong[0], answers: { ...saved.old }
       };
     } else {
       state = newState(data);
+      state.fileName = urlFileName(ctx.path);
       if (saved) { state.answers = { ...saved.old }; state.current = saved.current; state.timer = saved.timer; }
     }
     resetTransient();
@@ -1955,7 +1997,8 @@ function renderSaves() {
     a.href = '?save=' + it.id;
     const meta = readMeta(it.id);
     const info = el('span', 'muted save-info',
-      `?save=${it.id}` + (meta ? ` · ${meta.answered}/${meta.total}${meta.finished ? ' · завершено' : ''}` : ' · порожній'));
+      `?save=${it.id}` + (meta ? ` · ${meta.answered}/${meta.total}${meta.finished ? ' · завершено' : ''}` : ' · порожній') +
+      (meta && meta.fileName ? ` · 📄 ${meta.fileName}` : ''));
 
     const copy = el('button', 'secondary small', 'Копіювати посилання');
     copy.onclick = (e) => copyText(saveUrl(it.id), e.currentTarget);
@@ -2024,4 +2067,4 @@ if (!state.questions.length) {
 }
 
 /* Маркер збірки: має збігатися з версією в index.html */
-$('js-ver').textContent = '20261005e';
+$('js-ver').textContent = '20261006b';

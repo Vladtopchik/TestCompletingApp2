@@ -4,17 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Тест з JSON</title>
-  <link rel="stylesheet" href="style.css?v=20261005e">
+  <link rel="stylesheet" href="style.css?v=20261006b">
 </head>
 <body>
   <main class="card">
     <div id="timer-wrap" class="timer-wrap" hidden>
       <div id="timer-box" class="timer-box t-off">
         <div class="timer-head">
-          <button id="timer-toggle" class="timer-icon" title="Таймер / секундомір" aria-label="Таймер / секундомір"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5M12 2.5V5"/></svg></button>
+          <button id="timer-resume-mini" class="timer-mini" hidden title="Відновити" aria-label="Відновити"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 3.5v17L21 12z"/></svg></button>
+          <button id="timer-reset-mini" class="timer-mini" hidden title="Зупинити таймер" aria-label="Зупинити таймер"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l8.7 5v10L12 22l-8.7-5V7z"/></svg></button>
           <span id="timer-time" class="timer-time" hidden>00:00:00</span>
-          <button id="timer-resume-mini" class="timer-mini" hidden title="Відновити">▶</button>
-          <button id="timer-reset-mini" class="timer-mini" hidden title="Скинути таймер">↺</button>
+          <button id="timer-toggle" class="timer-icon" title="Таймер / секундомір" aria-label="Таймер / секундомір"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9.5 2.5h5M12 2.5V5"/></svg></button>
         </div>
         <div id="timer-panel" class="timer-panel" hidden>
           <div class="timer-type">
@@ -105,6 +105,7 @@
         <button id="btn-collapse-all" class="secondary small">Згорнути все</button>
       </div>
       <div class="home-row"><button id="btn-home" class="secondary small">← На головну</button></div>
+      <p id="file-info" class="muted file-info" hidden></p>
       <p id="counter" class="muted"></p>
       <p id="done-counter" class="done-counter"></p>
       <div id="palette" class="palette"></div>
@@ -192,7 +193,7 @@
       <button id="btn-new" class="danger">Очистити результат</button>
       <button id="btn-wipe" class="danger">Стерти весь localStorage</button>
     </div>
-    <p class="muted version-line">Збірка: index 20261005e · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
+    <p class="muted version-line">Збірка: index 20261006b · script <span id="js-ver">не завантажено (старий кеш?)</span></p>
   </main>
   <div id="explain-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="explain-title">
     <div class="modal-dialog">
@@ -202,6 +203,6 @@
     </div>
   </div>
   <div id="lightbox" class="lightbox" hidden><img id="lightbox-img" alt="Збільшене зображення"></div>
-  <script src="script.js?v=20261005e"></script>
+  <script src="script.js?v=20261006b"></script>
 </body>
 </html>
