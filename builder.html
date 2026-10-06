@@ -49,16 +49,27 @@ textarea { width: 100%; resize: vertical; display: block; }
 .checks .w { color: var(--warn); }
 
 /* Розкладка */
-.layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 12px; align-items: start; }
-@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+.layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: var(--side-w, 420px) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .resizer, #btn-size-reset { display: none; } }
 .side, .editor { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
-.side { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; gap: 8px; }
-@media (max-width: 800px) { .side { position: static; max-height: 50vh; } }
+.side { position: sticky; top: 12px; height: var(--side-h, calc(100vh - 24px)); min-height: 300px; display: flex; flex-direction: column; gap: 8px; }
+.side > * { flex: none; }
+.resizer { position: absolute; top: 0; right: -9px; bottom: 0; width: 12px; cursor: col-resize; z-index: 5; }
+.resizer::after { content: ''; position: absolute; top: 50%; left: 4px; width: 4px; height: 44px; margin-top: -22px; border-radius: 2px; background: var(--border); }
+.resizer-b { top: auto; right: 0; bottom: -9px; left: 0; width: auto; height: 12px; cursor: row-resize; }
+.resizer-b::after { top: 4px; left: 50%; width: 44px; height: 4px; margin: 0 0 0 -22px; }
+.resizer-c { top: auto; right: -9px; bottom: -9px; width: 18px; height: 18px; cursor: nwse-resize; z-index: 6; }
+.resizer-c::after { top: 8px; left: 8px; width: 8px; height: 8px; margin: 0; border-radius: 50%; }
+.resizer:hover::after, .resizer.drag::after { background: var(--accent); }
+.side-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.side-help summary { cursor: pointer; }
+.side-help p { margin: 6px 0 0; }
+@media (max-width: 800px) { .side { position: static; height: 75vh; } }
 .side-tools { display: flex; flex-wrap: wrap; gap: 6px; }
 .side-tools input[type=text] { flex: 1; min-width: 0; }
 #sel-bar { align-items: center; }
 #sel-bar .muted { margin-right: auto; }
-#qlist { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 80px; }
+#qlist { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1 1 0; min-height: 120px; }
 .qi { position: relative; display: grid; grid-template-columns: auto 2.2em minmax(0, 1fr) auto; column-gap: 6px; align-items: center; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; cursor: grab; }
 .qi.dragging { opacity: .4; }
 .qi-act { grid-column: 4; grid-row: 1 / span 2; display: none; gap: 3px; }
@@ -72,6 +83,20 @@ textarea { width: 100%; resize: vertical; display: block; }
 .qi.over-bottom { box-shadow: 0 3px 0 var(--accent); }
 .qi .qc { grid-column: 1; grid-row: span 2; width: 16px; height: 16px; margin: 0; }
 .qi.checked { background: rgba(37, 99, 235, .07); }
+.qi.nested { margin-left: 12px; }
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; }
+.seg button:first-child { border-radius: 8px 0 0 8px; }
+.seg button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+button.secondary.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.gh { display: flex; align-items: center; gap: 6px; margin-top: 6px; padding: 5px 8px; font-weight: 600; background: rgba(127, 127, 127, .14); border: 1px solid transparent; border-radius: 8px; }
+.gh .gc { width: 16px; height: 16px; margin: 0; flex: none; }
+.gh .gname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gh .gcount { flex: none; font-weight: 400; }
+.gh button { flex: none; width: 26px; height: 26px; padding: 1px 0; font-size: .85rem; background: var(--card); }
+.gh button.gt { background: transparent; border: 0; color: var(--text); }
+.gh.drop-ok, .qi.drop-ok { border-color: var(--accent); background: rgba(37, 99, 235, .2); }
+#topic-bar input { min-width: 0; }
 .qi .qt, .qi .qm { grid-column: 3; }
 .qi .qn { grid-column: 2; grid-row: span 2; font-weight: 700; color: var(--muted); text-align: right; }
 .qi.bad .qn { color: var(--bad); }
@@ -132,7 +157,6 @@ label.f input[type=text], label.f select { width: 100%; }
 <header class="top">
   <div class="top-row">
     <h1>Конструктор тестів</h1>
-    <span class="muted">формат v4</span>
     <span id="draft-state" class="muted"></span>
   </div>
   <div class="top-row">
@@ -157,13 +181,29 @@ label.f input[type=text], label.f select { width: 100%; }
     <div class="side-tools">
       <input id="filter" type="text" placeholder="Пошук за текстом, темою або №" aria-label="Пошук">
     </div>
+    <div id="view-bar" class="side-tools">
+      <div class="seg">
+        <button id="v-flat" class="secondary small" title="Усі питання по порядку">Список</button><button id="v-topics" class="secondary small" title="Питання, згруповані за темами">За темами</button>
+      </div>
+      <button id="btn-group" class="secondary small" hidden title="Переставити питання в самому тесті так, щоб питання однієї теми йшли підряд">Згрупувати в тесті</button>
+      <button id="btn-collapse" class="secondary small" hidden></button>
+    </div>
     <div id="sel-bar" class="side-tools"></div>
+    <div id="topic-bar" class="side-tools" hidden>
+      <input id="bulk-topic" type="text" list="topics-bulk" placeholder="Нова тема для вибраних" aria-label="Нова тема для вибраних питань">
+      <datalist id="topics-bulk"></datalist>
+      <button id="btn-bulk-topic" class="small">Змінити тему</button>
+      <button id="btn-bulk-clear" class="secondary small" title="Прибрати тему у вибраних питань">Без теми</button>
+    </div>
     <ul id="qlist"></ul>
     <div class="side-tools">
       <select id="add-type" aria-label="Тип нового питання"></select>
       <button id="btn-add" class="small">+ Додати питання</button>
     </div>
-    <p class="muted" style="margin:0">Наведіть на питання — з'являться ↑ ↓ ✕. Поставте галочки, щоб переміщати або видаляти кілька питань одразу (Shift — діапазон).</p>
+    <div class="side-foot"><details class="side-help muted"><summary>Підказка</summary><p>Наведіть на питання — з'являться ↑ ↓ ✕. Поставте галочки, щоб переміщати, видаляти або змінювати тему кільком питанням одразу (Shift — діапазон). У вигляді «За темами» перетягування змінює тему (кидайте на назву теми або на питання іншої теми), а порядок міняється лише стрілками.</p></details><button id="btn-size-reset" class="secondary small" title="Повернути розмір списку за замовчуванням (або двічі клікніть по краю панелі)">Скинути розмір</button></div>
+    <div class="resizer" id="resizer" title="Потягніть, щоб змінити ширину (подвійний клік — скинути)"></div>
+    <div class="resizer resizer-b" id="resizer-b" title="Потягніть, щоб змінити висоту (подвійний клік — скинути)"></div>
+    <div class="resizer resizer-c" id="resizer-c" title="Потягніть, щоб змінити ширину і висоту"></div>
   </aside>
   <main id="editor" class="editor"></main>
 </div>
@@ -416,7 +456,7 @@ function scheduleSave() { clearTimeout(draftT); draftT = setTimeout(saveDraft, 3
 function saveDraft() {
   clearTimeout(draftT);
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 2, fileName: $('fname').value, keyStyle, sel, S, qs: M.qs }));
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ v: 2, fileName: $('fname').value, keyStyle, sel, S, view, qs: M.qs }));
     $('draft-state').textContent = 'Зміни зберігаються автоматично';
   } catch (e) {
     $('draft-state').textContent = '⚠ Не вдалося зберегти в браузері (мало пам\'яті) — скачайте JSON';
@@ -428,65 +468,179 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 $('fname').addEventListener('input', scheduleSave);
 
 /* ---------- Бічна панель ---------- */
+let view = 'flat';              // 'flat' — список, 'topics' — групи за темами
+const collapsed = new Set();    // згорнуті теми
+let shownOrder = [];            // індекси питань так, як вони зараз показані (для Shift-діапазону)
+const tkey = (q) => q.topic.trim();
+const NO_TOPIC = 'Без теми';
+function topicGroups(idxs) {
+  const m = new Map();
+  idxs.forEach((i) => { const k = tkey(M.qs[i]); if (!m.has(k)) m.set(k, []); m.get(k).push(i); });
+  return m;
+}
+const allIdx = () => M.qs.map((q, i) => i);
+
 function renderSidebar() {
   const ul = $('qlist');
   ul.innerHTML = '';
-  const f = $('filter').value.trim().toLowerCase();
-  M.qs.forEach((q, i) => {
-    if (f && !(q.question.toLowerCase().includes(f) || q.topic.toLowerCase().includes(f) || String(i + 1) === f)) return;
-    const bad = validate(q).E.length > 0;
-    const on = checked.has(q);
-    const cb = h('input', { type: 'checkbox', class: 'qc', checked: on, title: 'Вибрати (Shift — діапазон)', 'aria-label': `Вибрати питання ${i + 1}` });
-    cb.onclick = (e) => {
-      e.stopPropagation();
-      const want = cb.checked;
-      if (e.shiftKey && lastChecked >= 0) {
-        const [a, b] = [Math.min(lastChecked, i), Math.max(lastChecked, i)];
-        for (let k = a; k <= b; k++) { if (want) checked.add(M.qs[k]); else checked.delete(M.qs[k]); }
-      } else if (want) checked.add(q); else checked.delete(q);
-      lastChecked = i;
-      renderSidebar();
-    };
-    const li = h('li', { class: 'qi' + (i === sel ? ' active' : '') + (bad ? ' bad' : '') + (on ? ' checked' : ''), draggable: true, title: bad ? 'У питанні є помилки' : '' },
-      cb,
-      h('span', { class: 'qn', text: String(i + 1) }),
-      h('span', { class: 'qt', text: q.question.trim() || '(без тексту)' }),
-      h('span', { class: 'qm', text: TYPES[q.type] + (q.topic.trim() ? ' · ' + q.topic.trim() : '') + (q.images.length ? ' · 🖼 ' + q.images.length : '') }));
-    const act = h('span', { class: 'qi-act' },
-      h('button', { class: 'secondary', text: '↑', title: 'Підняти', 'aria-label': 'Підняти питання', disabled: !canStep(groupFor(i), -1), onclick: (e) => { e.stopPropagation(); stepGroup(groupFor(i), -1); } }),
-      h('button', { class: 'secondary', text: '↓', title: 'Опустити', 'aria-label': 'Опустити питання', disabled: !canStep(groupFor(i), 1), onclick: (e) => { e.stopPropagation(); stepGroup(groupFor(i), 1); } }),
-      h('button', { class: 'danger', text: '✕', title: 'Видалити', 'aria-label': 'Видалити питання', onclick: (e) => { e.stopPropagation(); deleteQuestion(i); } }));
-    li.append(act);
-    li.onclick = () => select(i);
-    /* Перетягування: лінія вгорі або внизу показує, куди стане питання */
-    const half = (e) => { const r = li.getBoundingClientRect(); return e.clientY < r.top + r.height / 2 ? 'top' : 'bottom'; };
-    li.ondragstart = (e) => {
-      dragIdx = i;
-      if (groupFor(i).length > 1) document.querySelectorAll('.qi.checked').forEach((x) => x.classList.add('dragging'));
-      else li.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i));
-    };
-    li.ondragover = (e) => {
-      if (dragIdx < 0) return;
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const side = half(e);
-      li.classList.toggle('over-top', side === 'top');
-      li.classList.toggle('over-bottom', side === 'bottom');
-    };
-    li.ondragleave = () => li.classList.remove('over-top', 'over-bottom');
-    li.ondrop = (e) => {
-      e.preventDefault();
-      const from = dragIdx, side = half(e);
-      dragIdx = -1;
-      if (from < 0) return;
-      moveGroup(groupFor(from), i, side);
-    };
-    li.ondragend = () => { dragIdx = -1; renderSidebar(); };
-    ul.append(li);
-  });
+  shownOrder = [];
+  const idxs = visibleIdx();
+  if (view === 'topics') {
+    const order = [...topicGroups(allIdx()).keys()];
+    topicGroups(idxs).forEach((list, key) => {
+      ul.append(groupHeader(key, list, order));
+      if (!collapsed.has(key)) list.forEach((i) => { shownOrder.push(i); ul.append(questionItem(i)); });
+    });
+  } else {
+    idxs.forEach((i) => { shownOrder.push(i); ul.append(questionItem(i)); });
+  }
+  const dl = $('topics-bulk');
+  dl.innerHTML = '';
+  [...new Set(M.qs.map(tkey).filter(Boolean))].forEach((t) => dl.append(h('option', { value: t })));
+  renderViewBar();
   renderSelBar();
   updateStats();
+}
+
+function renderViewBar() {
+  $('v-flat').classList.toggle('on', view === 'flat');
+  $('v-topics').classList.toggle('on', view === 'topics');
+  $('btn-group').hidden = view !== 'topics';
+  const cb = $('btn-collapse');
+  cb.hidden = view !== 'topics';
+  const keys = [...topicGroups(allIdx()).keys()];
+  cb.textContent = keys.every((k) => collapsed.has(k)) ? 'Розгорнути все' : 'Згорнути все';
+}
+
+/* Перетягування у вигляді «За темами»: лише зміна теми, не порядку */
+function canDropTopic(key) { return dragIdx >= 0 && groupFor(dragIdx).some((q) => tkey(q) !== key); }
+function hlTopic(key) {
+  document.querySelectorAll('#qlist [data-tk]').forEach((el) => el.classList.toggle('drop-ok', el.dataset.tk === key));
+}
+function assignTopic(g, key) {
+  const list = [...g];
+  list.forEach((q) => { q.topic = key; });
+  toast(`Тему змінено (${list.length}): «${key || NO_TOPIC}»`);
+  touch(); renderSidebar(); renderEditor();
+}
+function topicDnD(el, key) {
+  el.dataset.tk = key;
+  el.ondragover = (e) => {
+    if (!canDropTopic(key)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    hlTopic(key);
+  };
+  el.ondrop = (e) => {
+    e.preventDefault();
+    const from = dragIdx;
+    dragIdx = -1;
+    if (from >= 0) assignTopic(groupFor(from), key);
+  };
+}
+
+function groupHeader(key, list, order) {
+  const qs = list.map((i) => M.qs[i]);
+  const all = qs.every((q) => checked.has(q)), some = qs.some((q) => checked.has(q));
+  const cb = h('input', { type: 'checkbox', class: 'gc', checked: all, title: 'Вибрати всі питання цієї теми', 'aria-label': 'Вибрати всі питання теми' });
+  cb.indeterminate = some && !all;
+  cb.onclick = (e) => {
+    e.stopPropagation();
+    qs.forEach((q) => { if (cb.checked) checked.add(q); else checked.delete(q); });
+    renderSidebar();
+  };
+  const closed = collapsed.has(key);
+  const pos = order.indexOf(key);
+  const toggle = () => { if (closed) collapsed.delete(key); else collapsed.add(key); renderSidebar(); };
+  const gh = h('li', { class: 'gh' },
+    cb,
+    h('button', { class: 'gt', text: closed ? '▸' : '▾', title: closed ? 'Розгорнути' : 'Згорнути', 'aria-label': closed ? 'Розгорнути тему' : 'Згорнути тему', onclick: (e) => { e.stopPropagation(); toggle(); } }),
+    h('span', { class: 'gname', text: key || NO_TOPIC, title: key || NO_TOPIC }),
+    h('span', { class: 'gcount muted', text: String(M.qs.filter((q) => tkey(q) === key).length) }),
+    h('button', { class: 'secondary', text: '↑', title: 'Підняти тему (переставляє питання в тесті)', 'aria-label': 'Підняти тему', disabled: pos <= 0, onclick: (e) => { e.stopPropagation(); moveTopic(key, -1); } }),
+    h('button', { class: 'secondary', text: '↓', title: 'Опустити тему (переставляє питання в тесті)', 'aria-label': 'Опустити тему', disabled: pos < 0 || pos >= order.length - 1, onclick: (e) => { e.stopPropagation(); moveTopic(key, 1); } }));
+  gh.onclick = toggle;
+  topicDnD(gh, key);
+  return gh;
+}
+
+/* Усі питання теми йдуть підряд (стабільно, у порядку першої появи теми) або у заданому порядку тем */
+function applyTopicOrder(keys) {
+  const g = topicGroups(allIdx()), old = M.qs, keep = cur();
+  M.qs = keys.flatMap((k) => g.get(k).map((i) => old[i]));
+  sel = keep ? M.qs.indexOf(keep) : -1;
+  touch(); renderSidebar(); renderEditor();
+}
+function moveTopic(key, d) {
+  const keys = [...topicGroups(allIdx()).keys()];
+  const i = keys.indexOf(key), j = i + d;
+  if (i < 0 || j < 0 || j >= keys.length) return;
+  [keys[i], keys[j]] = [keys[j], keys[i]];
+  applyTopicOrder(keys);
+}
+function groupByTopics() {
+  applyTopicOrder([...topicGroups(allIdx()).keys()]);
+  toast('Питання в тесті згруповано за темами.');
+}
+
+function questionItem(i) {
+  const q = M.qs[i];
+  const grouped = view === 'topics';
+  const bad = validate(q).E.length > 0;
+  const on = checked.has(q);
+  const cb = h('input', { type: 'checkbox', class: 'qc', checked: on, title: 'Вибрати (Shift — діапазон)', 'aria-label': `Вибрати питання ${i + 1}` });
+  cb.onclick = (e) => {
+    e.stopPropagation();
+    const want = cb.checked;
+    const pa = shownOrder.indexOf(lastChecked), pb = shownOrder.indexOf(i);
+    if (e.shiftKey && pa >= 0 && pb >= 0) {
+      for (let k = Math.min(pa, pb); k <= Math.max(pa, pb); k++) { if (want) checked.add(M.qs[shownOrder[k]]); else checked.delete(M.qs[shownOrder[k]]); }
+    } else if (want) checked.add(q); else checked.delete(q);
+    lastChecked = i;
+    renderSidebar();
+  };
+  const meta = TYPES[q.type] + (!grouped && q.topic.trim() ? ' · ' + q.topic.trim() : '') + (q.images.length ? ' · 🖼 ' + q.images.length : '');
+  const li = h('li', { class: 'qi' + (grouped ? ' nested' : '') + (i === sel ? ' active' : '') + (bad ? ' bad' : '') + (on ? ' checked' : ''), draggable: true, title: bad ? 'У питанні є помилки' : '' },
+    cb,
+    h('span', { class: 'qn', text: String(i + 1) }),
+    h('span', { class: 'qt', text: q.question.trim() || '(без тексту)' }),
+    h('span', { class: 'qm', text: meta }));
+  const act = h('span', { class: 'qi-act' },
+    h('button', { class: 'secondary', text: '↑', title: 'Підняти', 'aria-label': 'Підняти питання', disabled: !canStep(groupFor(i), -1), onclick: (e) => { e.stopPropagation(); stepGroup(groupFor(i), -1); } }),
+    h('button', { class: 'secondary', text: '↓', title: 'Опустити', 'aria-label': 'Опустити питання', disabled: !canStep(groupFor(i), 1), onclick: (e) => { e.stopPropagation(); stepGroup(groupFor(i), 1); } }),
+    h('button', { class: 'danger', text: '✕', title: 'Видалити', 'aria-label': 'Видалити питання', onclick: (e) => { e.stopPropagation(); deleteQuestion(i); } }));
+  li.append(act);
+  li.onclick = () => select(i);
+  li.ondragstart = (e) => {
+    dragIdx = i;
+    if (groupFor(i).length > 1) document.querySelectorAll('.qi.checked').forEach((x) => x.classList.add('dragging'));
+    else li.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i));
+  };
+  li.ondragend = () => { dragIdx = -1; renderSidebar(); };
+  if (grouped) {
+    topicDnD(li, tkey(q));
+    return li;
+  }
+  /* Звичайний список: лінія вгорі або внизу показує, куди стане питання */
+  const half = (e) => { const r = li.getBoundingClientRect(); return e.clientY < r.top + r.height / 2 ? 'top' : 'bottom'; };
+  li.ondragover = (e) => {
+    if (dragIdx < 0) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const side = half(e);
+    li.classList.toggle('over-top', side === 'top');
+    li.classList.toggle('over-bottom', side === 'bottom');
+  };
+  li.ondragleave = () => li.classList.remove('over-top', 'over-bottom');
+  li.ondrop = (e) => {
+    e.preventDefault();
+    const from = dragIdx, side = half(e);
+    dragIdx = -1;
+    if (from < 0) return;
+    moveGroup(groupFor(from), i, side);
+  };
+  return li;
 }
 
 /* ---------- Вибір кількох питань ---------- */
@@ -498,14 +652,22 @@ function groupFor(i) {
   const q = M.qs[i];
   return checked.has(q) && checked.size > 1 ? M.qs.filter((x) => checked.has(x)) : [q];
 }
+/* «Доріжки», у межах яких рухають стрілки: увесь тест, а у вигляді «За темами» — лише своя тема */
+function lanes() {
+  return view === 'topics' ? [...topicGroups(allIdx()).values()] : [allIdx()];
+}
 function canStep(g, d) {
   const set = new Set(g), a = M.qs;
-  return a.some((x, k) => set.has(x) && (d < 0 ? k > 0 && !set.has(a[k - 1]) : k < a.length - 1 && !set.has(a[k + 1])));
+  return lanes().some((pos) => pos.some((p, k) => set.has(a[p]) && (d < 0 ? k > 0 && !set.has(a[pos[k - 1]]) : k < pos.length - 1 && !set.has(a[pos[k + 1]]))));
 }
 function stepGroup(g, d) {
   const set = new Set(g), a = M.qs, keep = cur();
-  if (d < 0) { for (let k = 1; k < a.length; k++) if (set.has(a[k]) && !set.has(a[k - 1])) [a[k], a[k - 1]] = [a[k - 1], a[k]]; }
-  else { for (let k = a.length - 2; k >= 0; k--) if (set.has(a[k]) && !set.has(a[k + 1])) [a[k], a[k + 1]] = [a[k + 1], a[k]]; }
+  lanes().forEach((pos) => {
+    const sub = pos.map((p) => a[p]);
+    if (d < 0) { for (let k = 1; k < sub.length; k++) if (set.has(sub[k]) && !set.has(sub[k - 1])) [sub[k], sub[k - 1]] = [sub[k - 1], sub[k]]; }
+    else { for (let k = sub.length - 2; k >= 0; k--) if (set.has(sub[k]) && !set.has(sub[k + 1])) [sub[k], sub[k + 1]] = [sub[k + 1], sub[k]]; }
+    pos.forEach((p, k) => { a[p] = sub[k]; });
+  });
   sel = keep ? a.indexOf(keep) : -1;
   touch(); renderSidebar(); renderEditor();
 }
@@ -540,12 +702,14 @@ function clearAll() {
 }
 function visibleIdx() {
   const f = $('filter').value.trim().toLowerCase();
-  return M.qs.map((q, i) => i).filter((i) => !f || M.qs[i].question.toLowerCase().includes(f) || M.qs[i].topic.toLowerCase().includes(f) || String(i + 1) === f);
+  return allIdx().filter((i) => !f || M.qs[i].question.toLowerCase().includes(f) || M.qs[i].topic.toLowerCase().includes(f) || String(i + 1) === f);
 }
 function renderSelBar() {
   purgeChecked();
   const bar = $('sel-bar');
   bar.innerHTML = '';
+  $('topic-bar').hidden = !checked.size;
+  $('btn-bulk-topic').textContent = `Змінити тему (${checked.size})`;
   if (!M.qs.length) return;
   const n = checked.size;
   const g = M.qs.filter((q) => checked.has(q));
@@ -1001,6 +1165,87 @@ $('btn-download').onclick = () => {
 $('btn-checks').onclick = () => { $('checks').hidden = !$('checks').hidden; renderChecks(); };
 $('key-style').onchange = () => { keyStyle = $('key-style').value; scheduleSave(); };
 $('filter').oninput = renderSidebar;
+/* Розмір списку питань: тягнеться мишкою/пальцем за правий, нижній край або кут; запам'ятовується */
+(function () {
+  const root = document.documentElement, side = document.querySelector('.side'), KEY = 'jqb:sideSize';
+  const cw = (w) => Math.max(260, Math.min(w, Math.min(1000, window.innerWidth - 320)));
+  const ch = (v) => Math.max(300, Math.min(v, 3000));
+  let size = {};
+  try { size = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) {}
+  const apply = () => {
+    if (size.w) root.style.setProperty('--side-w', cw(size.w) + 'px'); else root.style.removeProperty('--side-w');
+    if (size.h) root.style.setProperty('--side-h', ch(size.h) + 'px'); else root.style.removeProperty('--side-h');
+  };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(size)); } catch (e) {} };
+  const reset = () => { size = {}; apply(); save(); };
+  apply();
+  function handle(el, dx, dy) {
+    el.ondblclick = reset;
+    el.onpointerdown = (e) => {
+      e.preventDefault();
+      el.setPointerCapture(e.pointerId); el.classList.add('drag');
+      const r = side.getBoundingClientRect();
+      el.onpointermove = (ev) => {
+        if (dx) size.w = cw(ev.clientX - r.left);
+        if (dy) size.h = ch(ev.clientY - r.top);
+        apply();
+      };
+      el.onpointerup = () => { el.classList.remove('drag'); el.onpointermove = el.onpointerup = null; save(); };
+    };
+  }
+  handle($('resizer'), true, false);
+  handle($('resizer-b'), false, true);
+  handle($('resizer-c'), true, true);
+  $('btn-size-reset').onclick = reset;
+})();
+
+/* Автопрокрутка списку під час перетягування: підведіть картку до верхнього чи нижнього краю, або крутіть колесо */
+(function () {
+  let y = null, x = null, raf = 0;
+  const stop = () => { y = x = null; };
+  function tick() {
+    raf = 0;
+    if (dragIdx < 0 || y === null) return;
+    const ul = $('qlist'), r = ul.getBoundingClientRect();
+    const zone = Math.max(30, Math.min(70, r.height / 3));
+    const inX = x >= r.left - 20 && x <= r.right + 20;
+    let v = 0;
+    if (inX && y < r.top + zone) v = -Math.min(1.5, (r.top + zone - y) / zone) * 20;
+    else if (inX && y > r.bottom - zone) v = Math.min(1.5, (y - (r.bottom - zone)) / zone) * 20;
+    if (v) ul.scrollTop += v;
+    raf = requestAnimationFrame(tick);
+  }
+  document.addEventListener('dragover', (e) => {
+    if (dragIdx < 0) return;
+    x = e.clientX; y = e.clientY;
+    if (!raf) raf = requestAnimationFrame(tick);
+  });
+  document.addEventListener('dragend', stop);
+  document.addEventListener('drop', stop);
+  document.addEventListener('wheel', (e) => {
+    if (dragIdx < 0) return;
+    e.preventDefault();
+    $('qlist').scrollTop += e.deltaY;
+  }, { passive: false });
+})();
+function setView(v) { view = v; scheduleSave(); renderSidebar(); }
+$('v-flat').onclick = () => setView('flat');
+$('v-topics').onclick = () => setView('topics');
+$('btn-group').onclick = groupByTopics;
+$('btn-collapse').onclick = () => {
+  const keys = [...topicGroups(allIdx()).keys()];
+  if (keys.every((k) => collapsed.has(k))) collapsed.clear(); else keys.forEach((k) => collapsed.add(k));
+  renderSidebar();
+};
+function applyBulkTopic() {
+  const v = $('bulk-topic').value.trim();
+  if (!v) return toast('Введіть назву теми або натисніть «Без теми».', true);
+  assignTopic(M.qs.filter((q) => checked.has(q)), v);
+  $('bulk-topic').value = '';
+}
+$('btn-bulk-topic').onclick = applyBulkTopic;
+$('bulk-topic').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); applyBulkTopic(); } };
+$('btn-bulk-clear').onclick = () => assignTopic(M.qs.filter((q) => checked.has(q)), '');
 $('add-type').append(...Object.entries(TYPES).map(([k, v]) => h('option', { value: k, text: v })));
 $('btn-add').onclick = () => addQuestion($('add-type').value);
 
@@ -1013,6 +1258,7 @@ function restoreSaved() {
     qs.forEach(ensure);
     M = { qs };
     if (['cyr', 'lat', 'num'].includes(st.keyStyle)) keyStyle = st.keyStyle;
+    if (st.view === 'topics') view = 'topics';
     if (isObj(st.S)) {
       if (typeof st.S.compress === 'boolean') S.compress = st.S.compress;
       if (Number.isFinite(st.S.maxSide)) S.maxSide = st.S.maxSide;
