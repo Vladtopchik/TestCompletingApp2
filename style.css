@@ -279,3 +279,26 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 /* Назва завантаженого файлу */
 .file-info { margin: 8px 0 0; font-size: .8rem; word-break: break-all; }
 .save-info { word-break: break-all; }
+
+/* Вибір правила розрахунку балів НМТ */
+.nmt-presets { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.nmt-preset {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px; width: 100%; padding: 12px;
+  text-align: left; color: var(--text); background: transparent; border: 1px solid var(--border); border-radius: 8px;
+}
+.nmt-preset:hover, .nmt-preset:focus-visible { border-color: var(--accent); outline: none; }
+.nmt-preset.active { border-color: var(--accent); background: rgba(37, 99, 235, .12); }
+.nmt-preset-name { font-weight: 600; }
+.nmt-preset-meta { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.nmt-upload { width: 100%; padding: 16px 18px; font-size: 1.05rem; font-weight: 700; border-radius: 10px; }
+
+/* Коротка відповідь */
+.sa-wrap { margin: 8px 0; }
+.sa-input {
+  width: 100%; padding: 12px; font: inherit; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+}
+.sa-input:focus { outline: none; border-color: var(--accent); }
+.sa-input.rv-ok { border-color: var(--ok); background: rgba(22, 163, 74, .14); }
+.sa-input.rv-bad { border-color: var(--bad); background: rgba(220, 38, 38, .12); }
+.sa-input.rv-new { outline: 2px solid var(--change); outline-offset: 1px; }

@@ -237,6 +237,24 @@ function markCheck(btn, f) {
   if (tags.children.length) btn.append(tags);
 }
 
+/* Коротка відповідь: порівняння без урахування зайвих пробілів, коми/крапки в десяткових числах і (за замовчуванням) регістру.
+   Числа порівнюються за значенням: "3.50" = "3,5" = "3.5" */
+const SA_NUM_RE = /^[+-]?\d+(\.\d+)?$/;
+const saVariants = (q) => (Array.isArray(q.correct) ? q.correct : [q.correct]).map((v) => String(v).trim());
+function saNorm(q, s) {
+  const t = String(s).trim().replace(/\s+/g, ' ').replace(/\u2212/g, '-').replace(/(\d),(\d)/g, '$1.$2');
+  return q['case-sensitive'] === true ? t : t.toLowerCase();
+}
+function saSame(q, a, b) {
+  const x = saNorm(q, a);
+  const y = saNorm(q, b);
+  return x === y || (SA_NUM_RE.test(x) && SA_NUM_RE.test(y) && Number(x) === Number(y));
+}
+const saText = (a) => {
+  if (Array.isArray(a)) return a.map((v) => String(v).trim()).join(' / ');
+  return (typeof a === 'string' || typeof a === 'number') && String(a).trim() !== '' ? String(a).trim() : NONE;
+};
+
 /* ---------- Обробники типів питань ----------
    Кожен тип має: validate(q) -> null | текст помилки,
    render(q, answer, container, onAnswer, rv, chk) — rv = { old, reveal } у режимі помилок, інакше null;
@@ -605,6 +623,86 @@ const handlers = {
       if (a === q.correct) return `${name(q.correct)} ✅`;
       return `${typeof a === 'boolean' ? name(a) : NONE} ❌ - ${name(q.correct)}`;
     }
+  },
+
+  /* Коротка відповідь (вводиться текстом): correct: "3,5" або ["3,5", "7/2"] (кілька допустимих варіантів),
+     необов'язкове "case-sensitive": true (за замовчуванням регістр не враховується) */
+  'short-answer': {
+    validate(q) {
+      const ok = (v) => (typeof v === 'string' && v.trim() !== '') || (typeof v === 'number' && Number.isFinite(v));
+      if (!ok(q.correct) && !(Array.isArray(q.correct) && q.correct.length && q.correct.every(ok)))
+        return '"correct" має бути непорожнім рядком (або числом) чи непорожнім списком таких значень, наприклад ["3,5", "3.5"].';
+      if (q['case-sensitive'] !== undefined && q['case-sensitive'] !== null && typeof q['case-sensitive'] !== 'boolean')
+        return '"case-sensitive" має бути true або false (без лапок).';
+      return null;
+    },
+    render(q, answer, box, onAnswer, rv, chk) {
+      const cur = typeof answer === 'string' ? answer : '';
+      let st = box._sa;
+      /* Поле вводу створюємо один раз на питання і не перемальовуємо при кожному символі, щоб не губити фокус і клавіатуру */
+      if (!st || st.q !== q || !box.contains(st.wrap)) {
+        const hadFocus = !!st && st.input === document.activeElement;
+        box.innerHTML = '';
+        const wrap = el('div', 'sa-wrap');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'sa-input';
+        input.placeholder = 'Введіть відповідь';
+        input.autocomplete = 'off';
+        input.spellcheck = false;
+        input.setAttribute('aria-label', 'Відповідь');
+        st = box._sa = { q, wrap, input, onAnswer };
+        input.oninput = () => {
+          const v = input.value;
+          st.onAnswer(v.trim() === '' ? null : v);
+        };
+        input.onkeydown = (e) => {
+          if (e.key !== 'Enter' || e.repeat || e.isComposing) return;
+          e.preventDefault();
+          $('btn-next').click();
+        };
+        wrap.append(el('p', 'hint', 'Введіть відповідь (Enter — далі).'), input);
+        box.appendChild(wrap);
+        input.value = cur;
+        if (hadFocus) input.focus();
+      }
+      st.onAnswer = onAnswer;
+      const input = st.input;
+      if (document.activeElement !== input && input.value !== cur) input.value = cur;
+      Array.from(box.children).forEach((c) => { if (c !== st.wrap) c.remove(); });
+
+      const self = handlers['short-answer'];
+      const has = cur.trim() !== '';
+      input.classList.remove('rv-ok', 'rv-bad', 'rv-new', 'rv-old');
+      if (chk && has) input.classList.add(self.isCorrect(q, cur) ? 'rv-ok' : 'rv-bad');
+      if (rv) {
+        const oldT = typeof rv.old === 'string' ? rv.old.trim() : '';
+        const changed = cur.trim() !== oldT;
+        if (rv.reveal && has) input.classList.add(self.isCorrect(q, cur) ? 'rv-ok' : 'rv-bad');
+        else if (changed && has) input.classList.add('rv-new');
+        const block = el('div', 'rv-block');
+        if (rv.reveal) {
+          block.append(el('div', 'ok', `Правильна відповідь: ${saText(q.correct)}`));
+          block.append(el('div', self.isCorrect(q, rv.old) ? 'ok' : 'bad', `Стара відповідь: ${saText(rv.old)}`));
+        } else {
+          block.append(el('div', 'muted', `Стара відповідь: ${saText(rv.old)}`));
+        }
+        if (changed && has) {
+          const cls = rv.reveal ? (self.isCorrect(q, cur) ? 'ok' : 'bad') : 'new';
+          block.append(el('div', cls, `Нова відповідь: ${saText(cur)}`));
+        }
+        box.appendChild(block);
+      }
+    },
+    isAnswered: (q, a) => typeof a === 'string' && a.trim() !== '',
+    isCorrect: (q, a) => typeof a === 'string' && a.trim() !== '' && saVariants(q).some((v) => saSame(q, a, v)),
+    text: (q, a) => saText(a),
+    short: (q, a) => { const t = saText(a); return t === NONE ? '-' : t; },
+    format(q, a) {
+      const right = saText(q.correct);
+      if (this.isCorrect(q, a)) return `${right} ✅`;
+      return `${saText(a)} ❌ - ${right}`;
+    }
   }
 };
 
@@ -823,12 +921,24 @@ function downloadResults() {
 let nmtConfig = null;   // { cfg, scaler, warnings, name } — розібраний файл правил (не зберігається)
 let nmtError = '';      // помилка завантаження файлу правил
 
+/* Вбудовані пресети правил (ті самі файли правил, що можна завантажити вручну) */
+const NMT_PRESETS = [
+  { id: "ukrainian", name: "Українська мова", cfg: {"test":{"max-points":45,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":25},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":4,"count":5}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":8,"below-threshold":null},"strategy":"lookup-table","table":{"8":100,"9":105,"10":110,"11":120,"12":125,"13":130,"14":134,"15":136,"16":138,"17":140,"18":142,"19":143,"20":144,"21":145,"22":146,"23":148,"24":149,"25":150,"26":152,"27":154,"28":156,"29":157,"30":159,"31":160,"32":162,"33":163,"34":165,"35":167,"36":170,"37":172,"38":175,"39":177,"40":180,"41":183,"42":186,"43":191,"44":195,"45":200}}} },
+  { id: "math", name: "Математика", cfg: {"test":{"max-points":32,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":15},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":3,"count":3},"short-answer":{"strategy":"all-or-nothing","points":2,"count":4}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":5,"below-threshold":null},"strategy":"lookup-table","table":{"5":100,"6":108,"7":115,"8":123,"9":131,"10":134,"11":137,"12":140,"13":143,"14":145,"15":147,"16":148,"17":149,"18":150,"19":151,"20":152,"21":155,"22":159,"23":163,"24":167,"25":170,"26":173,"27":176,"28":180,"29":184,"30":189,"31":194,"32":200}}} },
+  { id: "history", name: "Історія України", cfg: {"test":{"max-points":54,"score":{"single-choice":{"strategy":"all-or-nothing","points":1},"multiple-choice":{"strategy":"per-correct","points-per-correct":1,"penalty-per-wrong":0,"min-points":0,"max-points":3},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":4},"ordering":{"strategy":"tiers","max-points":3,"tiers":[{"points":3,"when":{"all-positions":true}},{"points":2,"when":{"positions-all":["first","last"]}},{"points":1,"when":{"positions-any":["first","last"]}}],"default-points":0},"true-false":{"strategy":"per-statement","points-per-statement":1,"penalty-per-wrong":0,"min-points":0,"max-points":1}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":9,"below-threshold":null},"strategy":"lookup-table","table":{"9":100,"10":105,"11":110,"12":115,"13":120,"14":125,"15":130,"16":132,"17":134,"18":136,"19":138,"20":140,"21":141,"22":142,"23":143,"24":144,"25":145,"26":146,"27":147,"28":148,"29":149,"30":150,"31":151,"32":152,"33":154,"34":156,"35":158,"36":160,"37":163,"38":166,"39":168,"40":169,"41":170,"42":172,"43":173,"44":175,"45":177,"46":179,"47":181,"48":183,"49":185,"50":188,"51":191,"52":194,"53":197,"54":200}}} },
+  { id: "foreign-language", name: "Іноземна мова", cfg: {"test":{"max-points":32,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":21},"matching-question":{"strategy":"all-or-nothing","points":1,"count":11}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":5,"below-threshold":null},"strategy":"lookup-table","table":{"5":100,"6":109,"7":118,"8":125,"9":131,"10":134,"11":137,"12":140,"13":143,"14":145,"15":147,"16":148,"17":149,"18":150,"19":151,"20":152,"21":153,"22":155,"23":157,"24":159,"25":162,"26":166,"27":169,"28":173,"29":179,"30":185,"31":191,"32":200}}} },
+  { id: "biology", name: "Біологія", cfg: {"test":{"max-points":46,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":24},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":4,"count":4},"multiple-choice":{"strategy":"per-correct","points-per-correct":1,"penalty-per-wrong":0,"min-points":0,"max-points":3,"count":2}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":7,"below-threshold":null},"strategy":"lookup-table","table":{"7":100,"8":107,"9":114,"10":119,"11":124,"12":128,"13":131,"14":134,"15":136,"16":138,"17":140,"18":142,"19":144,"20":145,"21":146,"22":147,"23":148,"24":149,"25":150,"26":151,"27":152,"28":154,"29":156,"30":158,"31":160,"32":162,"33":164,"34":166,"35":168,"36":170,"37":172,"38":175,"39":177,"40":179,"41":182,"42":185,"43":188,"44":192,"45":196,"46":200}}} },
+  { id: "physics", name: "Фізика", cfg: {"test":{"max-points":32,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":14},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":3,"count":2},"short-answer":{"strategy":"all-or-nothing","points":2,"count":6}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":5,"below-threshold":null},"strategy":"lookup-table","table":{"5":100,"6":109,"7":118,"8":125,"9":131,"10":134,"11":137,"12":140,"13":143,"14":145,"15":147,"16":148,"17":149,"18":150,"19":151,"20":152,"21":156,"22":160,"23":164,"24":166,"25":169,"26":173,"27":176,"28":179,"29":184,"30":189,"31":194,"32":200}}} },
+  { id: "chemistry", name: "Хімія", cfg: {"test":{"max-points":32,"score":{"single-choice":{"strategy":"all-or-nothing","points":1,"count":18},"matching-question":{"strategy":"per-pair","points-per-pair":1,"penalty-per-wrong":0,"min-points":0,"max-points":3,"count":2},"short-answer":{"strategy":"all-or-nothing","points":2,"count":4}}},"scaled":{"min-scaled":100,"max-scaled":200,"threshold":{"min-test-points":5,"below-threshold":null},"strategy":"lookup-table","table":{"5":100,"6":109,"7":118,"8":125,"9":131,"10":134,"11":137,"12":140,"13":143,"14":145,"15":147,"16":148,"17":149,"18":150,"19":151,"20":152,"21":156,"22":160,"23":164,"24":166,"25":169,"26":173,"27":176,"28":179,"29":184,"30":189,"31":194,"32":200}}} }
+];
+
 const ALLOWED_STRATEGIES = {
   'single-choice': ['all-or-nothing'],
   'multiple-choice': ['per-correct', 'all-or-nothing'],
   'matching-question': ['per-pair', 'all-or-nothing'],
   'ordering': ['tiers', 'all-or-nothing'],
-  'true-false': ['per-statement', 'all-or-nothing']
+  'true-false': ['per-statement', 'all-or-nothing'],
+  'short-answer': ['all-or-nothing']
 };
 const PER_UNIT_KEY = {
   'per-correct': 'points-per-correct',
@@ -1698,6 +1808,14 @@ document.addEventListener('keydown', (e) => {
     }
     return;
   }
+  if (!$('nmt-modal').hidden) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeNmtModal();
+    }
+    return;
+  }
   if (e.key !== 'Enter' || e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return;
   if ($('screen-quiz').hidden || !$('lightbox').hidden) return;
   if (e.target && e.target.closest && e.target.closest('input, select, textarea, button, a, [tabindex]')) return;
@@ -1728,7 +1846,40 @@ $('btn-copy-mine-f').onclick = (e) => copyText(myAnswersReport(), e.currentTarge
 $('btn-download').onclick = downloadResults;
 
 /* Бали НМТ: запит файлу правил */
-$('btn-nmt').onclick = () => $('nmt-input').click();
+let nmtOpener = null;
+function openNmtModal() {
+  nmtOpener = document.activeElement;
+  const list = $('nmt-presets');
+  list.innerHTML = '';
+  NMT_PRESETS.forEach((p) => {
+    const b = el('button', 'nmt-preset' + (nmtConfig && nmtConfig.presetId === p.id ? ' active' : ''));
+    b.type = 'button';
+    b.append(el('span', 'nmt-preset-name', p.name), el('span', 'nmt-preset-meta', `макс. ${p.cfg.test['max-points']} балів`));
+    b.onclick = () => applyNmtPreset(p);
+    list.appendChild(b);
+  });
+  $('nmt-modal').hidden = false;
+  (list.querySelector('.nmt-preset') || $('btn-nmt-upload')).focus();
+}
+function closeNmtModal() {
+  $('nmt-modal').hidden = true;
+  const o = nmtOpener;
+  nmtOpener = null;
+  if (o && o !== document.body && document.contains(o) && typeof o.focus === 'function') o.focus();
+}
+function applyNmtPreset(p) {
+  closeNmtModal();
+  nmtConfig = null;
+  nmtError = '';
+  const res = parseScoring(p.cfg);
+  if (res.error) nmtError = `Пресет «${p.name}»: ${res.error}`;
+  else nmtConfig = { ...res, name: `${p.name} (пресет)`, presetId: p.id };
+  render();
+}
+$('btn-nmt').onclick = openNmtModal;
+$('btn-nmt-cancel').onclick = closeNmtModal;
+$('btn-nmt-upload').onclick = () => { closeNmtModal(); $('nmt-input').click(); };
+$('nmt-modal').onclick = (e) => { if (e.target === $('nmt-modal')) closeNmtModal(); };
 $('nmt-input').onchange = (e) => {
   const file = e.target.files[0];
   e.target.value = '';
@@ -2067,4 +2218,4 @@ if (!state.questions.length) {
 }
 
 /* Маркер збірки: має збігатися з версією в index.html */
-$('js-ver').textContent = '20261006b';
+$('js-ver').textContent = '20261006d';
