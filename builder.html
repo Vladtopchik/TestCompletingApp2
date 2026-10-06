@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Конструктор тестів</title>
+<style>
+:root {
+  --bg: #f3f4f6; --card: #fff; --text: #1f2937; --muted: #6b7280;
+  --accent: #2563eb; --border: #d1d5db; --ok: #16a34a; --bad: #dc2626; --warn: #d97706;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111827; --card: #1f2937; --text: #f3f4f6; --muted: #9ca3af; --border: #374151; --warn: #f59e0b; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; padding: 12px; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.4; }
+h1 { margin: 0; font-size: 1.25rem; }
+h2 { margin: 0; font-size: 1.1rem; }
+h3 { margin: 0 0 8px; font-size: 1rem; }
+.muted { color: var(--muted); font-size: .85rem; }
+
+button { padding: 8px 14px; font: inherit; color: #fff; background: var(--accent); border: 0; border-radius: 8px; cursor: pointer; }
+button.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+button.danger { background: transparent; color: var(--bad); border: 1px solid var(--bad); }
+button.small { padding: 4px 10px; font-size: .85rem; }
+button.icon { padding: 4px 8px; font-size: .85rem; min-width: 30px; }
+button:disabled { opacity: .4; cursor: not-allowed; }
+input[type=text], input[type=number], select, textarea {
+  font: inherit; color: var(--text); background: var(--card);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; max-width: 100%;
+}
+textarea { width: 100%; resize: vertical; display: block; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Верхня панель */
+.top { max-width: 1200px; margin: 0 auto 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; }
+.top-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.top-row + .top-row { margin-top: 10px; }
+.top-row .grow { flex: 1; min-width: 160px; }
+.fname { display: flex; align-items: center; gap: 4px; }
+.fname input { width: 12em; }
+#stats.warn { color: var(--warn); }
+#draft-state { margin-left: auto; }
+.banner { margin-top: 10px; padding: 8px 12px; border: 1px solid var(--accent); border-radius: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.banner span { flex: 1; min-width: 12em; }
+
+.checks { margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 8px; max-height: 240px; overflow-y: auto; }
+.checks div { padding: 2px 0; cursor: pointer; }
+.checks div:hover { color: var(--accent); }
+.checks .e { color: var(--bad); }
+.checks .w { color: var(--warn); }
+
+/* Розкладка */
+.layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+.side, .editor { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.side { position: sticky; top: 12px; max-height: calc(100vh - 24px); display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 800px) { .side { position: static; max-height: 50vh; } }
+.side-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.side-tools input[type=text] { flex: 1; min-width: 0; }
+#qlist { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 80px; }
+.qi { display: grid; grid-template-columns: 2.2em 1fr; column-gap: 6px; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; cursor: pointer; }
+.qi:hover { border-color: var(--border); }
+.qi.active { border-color: var(--accent); background: rgba(37, 99, 235, .12); }
+.qi.over { border-top: 3px solid var(--accent); }
+.qi .qn { grid-row: span 2; font-weight: 700; color: var(--muted); text-align: right; }
+.qi.bad .qn { color: var(--bad); }
+.qi .qt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qi .qm { font-size: .75rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Редактор */
+.qhead { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 12px; }
+.qhead h2 { margin-right: auto; }
+.qhead input[type=number] { width: 4.5em; padding: 4px 6px; }
+.row2 { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+.row2 > label { flex: 1; min-width: 12em; }
+label.f { display: block; font-weight: 600; font-size: .9rem; }
+label.f > :not(.lbl) { font-weight: 400; margin-top: 3px; }
+label.f input[type=text], label.f select { width: 100%; }
+.sec { margin: 14px 0; padding-top: 12px; border-top: 1px solid var(--border); }
+.sec-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.sec-head h3 { margin: 0 auto 0 0; }
+.hint { margin: 0 0 8px; color: var(--muted); font-size: .85rem; }
+
+.opt { display: flex; gap: 6px; align-items: flex-start; margin: 6px 0; }
+.opt > input[type=radio], .opt > input[type=checkbox] { width: 18px; height: 18px; margin: 9px 2px 0; flex: none; }
+.opt .pos { flex: none; min-width: 1.8em; padding-top: 8px; font-weight: 700; color: var(--muted); text-align: right; }
+.opt .keyin { width: 3.8em; flex: none; text-align: center; font-weight: 700; }
+.opt textarea { flex: 1; min-width: 0; overflow: hidden; }
+.opt select { flex: none; max-width: 40%; }
+.opt .btns { display: flex; gap: 4px; flex: none; padding-top: 2px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 900px) { .cols { grid-template-columns: 1fr; } }
+.minmax { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 0; }
+.minmax input { width: 5em; }
+
+.imgs { display: flex; flex-wrap: wrap; gap: 10px; }
+.img-card { width: 150px; border: 1px solid var(--border); border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 4px; }
+.img-card img { width: 100%; height: 100px; object-fit: contain; background: #fff; border-radius: 4px; cursor: zoom-in; }
+.img-card .btns { display: flex; gap: 3px; justify-content: space-between; }
+.img-card .btns button { padding: 2px 0; flex: 1; font-size: .8rem; }
+.drop { margin-top: 6px; padding: 10px; text-align: center; border: 2px dashed var(--border); border-radius: 8px; color: var(--muted); font-size: .85rem; }
+.drop.over { border-color: var(--accent); color: var(--accent); }
+.img-set { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: .85rem; margin-bottom: 8px; }
+.img-set input[type=number] { width: 5.5em; padding: 3px 6px; }
+
+.prob { margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; font-size: .9rem; }
+.prob.e { border: 1px solid var(--bad); background: rgba(220, 38, 38, .08); color: var(--bad); }
+.prob.w { border: 1px solid var(--warn); background: rgba(217, 119, 6, .08); color: var(--warn); margin-top: 6px; }
+.prob div { margin: 2px 0; }
+.empty { padding: 30px 10px; text-align: center; color: var(--muted); }
+.empty .actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 30; max-width: 90vw; padding: 10px 16px; color: #fff; background: #111827; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.3); }
+#toast.err { background: var(--bad); }
+#lb { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.85); cursor: zoom-out; }
+#lb img { max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <h1>Конструктор тестів</h1>
+    <span class="muted">формат v4</span>
+    <span id="draft-state" class="muted"></span>
+  </div>
+  <div class="top-row">
+    <button id="btn-load">Завантажити тест</button>
+    <input type="file" id="file-in" accept=".json,application/json" hidden>
+    <button id="btn-new" class="secondary">Новий тест</button>
+    <label class="fname muted">Файл: <input id="fname" type="text" value="test.json" aria-label="Назва файлу"></label>
+    <button id="btn-download">Скачати JSON</button>
+    <label class="muted">Ключі нових варіантів:
+      <select id="key-style"><option value="cyr">А Б В Г Д</option><option value="lat">A B C D E</option><option value="num">1 2 3 4 5</option></select>
+    </label>
+  </div>
+  <div class="top-row">
+    <span id="stats" class="muted grow"></span>
+    <button id="btn-checks" class="secondary small">Перевірка тесту</button>
+  </div>
+  <div id="checks" class="checks" hidden></div>
+  <div id="banner" class="banner" hidden>
+    <span id="banner-text"></span>
+    <button id="banner-yes" class="small">Відновити</button>
+    <button id="banner-no" class="secondary small">Відкинути</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="side">
+    <div class="side-tools">
+      <input id="filter" type="text" placeholder="Пошук за текстом, темою або №" aria-label="Пошук">
+    </div>
+    <ul id="qlist"></ul>
+    <div class="side-tools">
+      <select id="add-type" aria-label="Тип нового питання"></select>
+      <button id="btn-add" class="small">+ Додати питання</button>
+    </div>
+    <p class="muted" style="margin:0">Порядок можна змінювати перетягуванням, кнопками ↑↓ або вказавши номер.</p>
+  </aside>
+  <main id="editor" class="editor"></main>
+</div>
+
+<div id="toast" hidden></div>
+<div id="lb" hidden><img id="lb-img" alt="Збільшене зображення"></div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  const late = {};
+  for (const [k, v] of Object.entries(props || {})) {
+    if (v === null || v === undefined || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'value' || k === 'checked') late[k] = v;
+    else if (k === 'disabled' || k === 'draggable' || k === 'hidden') e[k] = v;
+    else if (k.startsWith('on')) e[k] = v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  kids.flat().forEach((c) => { if (c !== null && c !== undefined && c !== false) e.append(c.nodeType ? c : document.createTextNode(c)); });
+  if ('value' in late) e.value = late.value;
+  if ('checked' in late) e.checked = late.checked;
+  return e;
+}
+
+/* ---------- Типи і константи ---------- */
+const TYPES = {
+  'single-choice': 'Один варіант',
+  'multiple-choice': 'Кілька варіантів',
+  'matching-question': 'Відповідності',
+  'ordering': 'Послідовність',
+  'true-false': 'Правда / неправда'
+};
+const ALIASES = { 'multiple-choices': 'multiple-choice', 'match-choices': 'matching-question', 'matching': 'matching-question' };
+const KNOWN = new Set(['index', 'question', 'type', 'topic', 'explanation', 'images', 'choices', 'matches', 'correct', 'min', 'max']);
+const ALPH = { cyr: 'АБВГДЕЖЗИКЛМНОП'.split(''), lat: 'ABCDEFGHIJKLMNOP'.split('') };
+const DATA_URL = /^data:image\/[\w.+-]+;base64,/i;
+const EXT = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
+const DRAFT_KEY = 'jqb:draft:v1';
+
+/* ---------- Стан ---------- */
+let M = { qs: [] };
+let sel = -1;
+let dirty = false;
+let uid = 1;
+let keyStyle = 'cyr';
+let dragIdx = -1;
+const S = { compress: true, maxSide: 1000, quality: 0.8 };
+
+function nextKey(list, style) {
+  const st = style || keyStyle;
+  const used = new Set(list.map((x) => x.key));
+  if (st !== 'num') for (const c of ALPH[st]) if (!used.has(c)) return c;
+  let n = 1;
+  while (used.has(String(n))) n++;
+  return String(n);
+}
+
+function raw(type) {
+  return {
+    uid: uid++, type, question: '', topic: '', explanation: '', explOpen: false, images: [],
+    choices: [], matches: [], cSingle: '', cMulti: [], cMap: {}, cBool: true, min: null, max: null, extra: {}
+  };
+}
+/* Дописує порожні елементи, щоб питання мало мінімально придатний вигляд */
+function ensure(q) {
+  const t = q.type;
+  if (t === 'true-false') return;
+  const fresh = q.choices.length === 0;
+  const need = fresh ? (t === 'ordering' ? 3 : t === 'matching-question' ? 3 : 4) : (t === 'ordering' ? 2 : 1);
+  while (q.choices.length < need) q.choices.push({ key: t === 'ordering' ? nextKey(q.choices, 'num') : nextKey(q.choices), text: '' });
+  if (t === 'matching-question') {
+    const needM = q.matches.length === 0 ? 4 : 1;
+    while (q.matches.length < needM) q.matches.push({ key: nextKey(q.matches, 'num'), text: '' });
+  }
+}
+function blank(type) { const q = raw(type); ensure(q); return q; }
+
+/* ---------- Завантаження з JSON ---------- */
+const strOf = (v) => (typeof v === 'string' ? v : v === null || v === undefined ? '' : String(v));
+const listOf = (o) => (isObj(o) ? Object.entries(o).map(([key, t]) => ({ key, text: strOf(t) })) : []);
+
+function fromObj(o) {
+  if (!isObj(o)) o = {};
+  const type = ALIASES[o.type] || o.type;
+  const q = raw(TYPES[type] ? type : 'single-choice');
+  q.question = strOf(o.question);
+  q.topic = strOf(o.topic);
+  q.explanation = strOf(o.explanation);
+  q.images = Array.isArray(o.images) ? o.images.filter((s) => typeof s === 'string') : [];
+  q.choices = listOf(o.choices);
+  q.matches = listOf(o.matches);
+  q.min = Number.isInteger(o.min) ? o.min : null;
+  q.max = Number.isInteger(o.max) ? o.max : null;
+  const c = o.correct;
+  if (q.type === 'single-choice') q.cSingle = typeof c === 'string' ? c : '';
+  else if (q.type === 'multiple-choice') q.cMulti = Array.isArray(c) ? c.map(String) : [];
+  else if (q.type === 'matching-question') {
+    if (isObj(c)) Object.entries(c).forEach(([k, v]) => { q.cMap[k] = String(v); });
+  } else if (q.type === 'true-false') q.cBool = typeof c === 'boolean' ? c : true;
+  else if (q.type === 'ordering' && Array.isArray(c)) {
+    /* У конструкторі порядок пунктів = правильний порядок */
+    const byKey = new Map(q.choices.map((x) => [x.key, x]));
+    const ordered = [];
+    c.forEach((k) => { const it = byKey.get(String(k)); if (it) { ordered.push(it); byKey.delete(String(k)); } });
+    q.choices = ordered.concat([...byKey.values()]);
+  }
+  Object.keys(o).forEach((k) => { if (!KNOWN.has(k)) q.extra[k] = o[k]; });
+  q.explOpen = !!q.explanation.trim();
+  ensure(q);
+  return q;
+}
+
+/* ---------- Експорт у JSON ---------- */
+function hashStr(s) { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return x >>> 0; }
+/* Перестановка 1..n, яка точно не є тотожною (щоб правильний порядок не збігався з тим, що бачить користувач) */
+function seededPerm(n, seed) {
+  let s = hashStr(seed + ':' + n) || 1;
+  const rnd = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+  const a = Array.from({ length: n }, (_, i) => i + 1);
+  for (let i = n - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  if (n >= 2 && a.every((v, i) => v === i + 1)) a.push(a.shift());
+  return a;
+}
+const INT_KEY = /^(0|[1-9]\d*)$/;
+function orderingExport(q) {
+  const items = q.choices.map((x) => ({ ...x }));
+  const n = items.length;
+  if (items.every((x) => INT_KEY.test(x.key))) {
+    const sorted = (arr) => [...arr].sort((a, b) => Number(a.key) - Number(b.key));
+    if (n >= 2 && sorted(items).every((x, i) => x === items[i])) {
+      const perm = seededPerm(n, q.question);
+      items.forEach((x, i) => { x.key = String(perm[i]); });
+    }
+    return { choices: Object.fromEntries(sorted(items).map((x) => [x.key, x.text])), correct: items.map((x) => x.key) };
+  }
+  const shown = n >= 2 ? seededPerm(n, q.question).map((p) => items[p - 1]) : items;
+  return { choices: Object.fromEntries(shown.map((x) => [x.key, x.text])), correct: items.map((x) => x.key) };
+}
+const toMap = (arr) => Object.fromEntries(arr.map((x) => [x.key, x.text]));
+
+function toObj(q, i) {
+  const o = { index: i, question: q.question, type: q.type };
+  if (q.topic.trim()) o.topic = q.topic.trim();
+  if (q.explanation.trim()) o.explanation = q.explanation.trim();
+  if (q.images.length) o.images = [...q.images];
+  switch (q.type) {
+    case 'single-choice': o.choices = toMap(q.choices); o.correct = q.cSingle; break;
+    case 'multiple-choice': {
+      o.choices = toMap(q.choices);
+      const order = q.choices.map((x) => x.key);
+      o.correct = [...q.cMulti].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      if (q.min !== null) o.min = q.min;
+      if (q.max !== null) o.max = q.max;
+      break;
+    }
+    case 'matching-question': {
+      o.choices = toMap(q.choices); o.matches = toMap(q.matches);
+      o.correct = Object.fromEntries(q.choices.filter((x) => q.cMap[x.key] !== undefined && q.cMap[x.key] !== '').map((x) => [x.key, q.cMap[x.key]]));
+      break;
+    }
+    case 'ordering': { const r = orderingExport(q); o.choices = r.choices; o.correct = r.correct; break; }
+    case 'true-false': o.correct = q.cBool; break;
+  }
+  return Object.assign(o, q.extra);
+}
+const exportAll = () => M.qs.map(toObj);
+
+/* ---------- Перевірка ---------- */
+function validate(q) {
+  const E = [], W = [];
+  const t = q.type;
+  if (!q.question.trim()) E.push('порожній текст питання');
+  q.images.forEach((s, i) => { if (!DATA_URL.test(s)) E.push(`зображення ${i + 1} не є Data URL у форматі data:image/...;base64,...`); });
+  if (t === 'true-false') return { E, W };
+
+  const checkKeys = (list, label) => {
+    const seen = new Set();
+    list.forEach((x, i) => {
+      if (!x.key) E.push(`${label} №${i + 1}: порожній ключ`);
+      else if (/\s/.test(x.key)) E.push(`${label} "${x.key}": ключ містить пробіл`);
+      if (seen.has(x.key)) E.push(`${label}: ключ "${x.key}" повторюється`);
+      seen.add(x.key);
+      if (!x.text.trim()) W.push(`${label} "${x.key}": порожній текст`);
+    });
+  };
+  checkKeys(q.choices, t === 'matching-question' ? 'Пункт' : t === 'ordering' ? 'Пункт' : 'Варіант');
+  const ckeys = new Set(q.choices.map((x) => x.key));
+
+  if (t === 'ordering') {
+    if (q.choices.length < 2) E.push('потрібно щонайменше два пункти');
+  } else if (t === 'single-choice') {
+    if (!q.choices.length) E.push('потрібен хоча б один варіант');
+    if (!ckeys.has(q.cSingle)) E.push('не обрано правильну відповідь');
+  } else if (t === 'multiple-choice') {
+    if (!q.choices.length) E.push('потрібен хоча б один варіант');
+    const min = q.min ?? 1, max = q.max ?? 3;
+    const good = q.cMulti.filter((k) => ckeys.has(k));
+    if (min < 1 || max < min) E.push('min і max мають задовольняти 1 ≤ min ≤ max');
+    else if (!good.length) E.push('не обрано жодної правильної відповіді');
+    else if (good.length < min || good.length > max) E.push(`правильних відповідей ${good.length}, а дозволено від ${min} до ${max} — змініть min/max`);
+    if (good.length !== q.cMulti.length) E.push('серед правильних є неіснуючі ключі');
+  } else if (t === 'matching-question') {
+    checkKeys(q.matches, 'Пара');
+    if (!q.choices.length) E.push('потрібен хоча б один пункт зліва');
+    if (!q.matches.length) E.push('потрібна хоча б одна пара справа');
+    const mkeys = new Set(q.matches.map((x) => x.key));
+    q.choices.forEach((x) => { if (!mkeys.has(q.cMap[x.key])) E.push(`для "${x.key}" не обрано пару`); });
+  }
+  return { E, W };
+}
+function allChecks() {
+  const items = [];
+  M.qs.forEach((q, i) => { const v = validate(q); v.E.forEach((m) => items.push({ i, m, e: true })); v.W.forEach((m) => items.push({ i, m, e: false })); });
+  return items;
+}
+
+/* ---------- Допоміжне ---------- */
+let toastT;
+function toast(msg, err) {
+  const t = $('toast');
+  t.textContent = msg; t.className = err ? 'err' : ''; t.hidden = false;
+  clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4500);
+}
+function autogrow(ta) { ta.style.height = 'auto'; ta.style.height = (ta.scrollHeight + 2) + 'px'; }
+function move(arr, i, d) {
+  const j = i + d;
+  if (j < 0 || j >= arr.length) return false;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  return true;
+}
+const kb = (url) => Math.round((url.length * 3 / 4) / 1024);
+const cur = () => (sel >= 0 ? M.qs[sel] : null);
+
+/* ---------- Зміни, чернетка ---------- */
+let draftT, rafPending = false;
+function touch() {
+  dirty = true;
+  clearTimeout(draftT); draftT = setTimeout(saveDraft, 700);
+  if (!rafPending) { rafPending = true; requestAnimationFrame(() => { rafPending = false; refresh(); }); }
+}
+function refresh() { renderSidebar(); updateProblems(); renderChecks(); }
+function saveDraft() {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ fileName: $('fname').value, keyStyle, data: exportAll() }));
+    $('draft-state').textContent = 'Чернетку збережено в браузері';
+  } catch (e) {
+    $('draft-state').textContent = 'Чернетку не збережено (мало пам\'яті) — скачайте JSON';
+  }
+}
+window.addEventListener('beforeunload', (e) => { if (dirty && M.qs.length) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Бічна панель ---------- */
+function renderSidebar() {
+  const ul = $('qlist');
+  ul.innerHTML = '';
+  const f = $('filter').value.trim().toLowerCase();
+  M.qs.forEach((q, i) => {
+    if (f && !(q.question.toLowerCase().includes(f) || q.topic.toLowerCase().includes(f) || String(i + 1) === f)) return;
+    const bad = validate(q).E.length > 0;
+    const li = h('li', { class: 'qi' + (i === sel ? ' active' : '') + (bad ? ' bad' : ''), draggable: true, title: bad ? 'У питанні є помилки' : '' },
+      h('span', { class: 'qn', text: String(i + 1) }),
+      h('span', { class: 'qt', text: q.question.trim() || '(без тексту)' }),
+      h('span', { class: 'qm', text: TYPES[q.type] + (q.topic.trim() ? ' · ' + q.topic.trim() : '') + (q.images.length ? ' · 🖼 ' + q.images.length : '') }));
+    li.onclick = () => select(i);
+    li.ondragstart = (e) => { dragIdx = i; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); };
+    li.ondragover = (e) => { if (dragIdx >= 0) { e.preventDefault(); li.classList.add('over'); } };
+    li.ondragleave = () => li.classList.remove('over');
+    li.ondrop = (e) => { e.preventDefault(); const from = dragIdx; dragIdx = -1; if (from >= 0) moveQuestion(from, i); };
+    li.ondragend = () => { dragIdx = -1; };
+    ul.append(li);
+  });
+  updateStats();
+}
+function updateStats() {
+  const imgs = M.qs.reduce((n, q) => n + q.images.reduce((m, s) => m + s.length, 0), 0);
+  const count = M.qs.reduce((n, q) => n + q.images.length, 0);
+  const mb = imgs / 1048576;
+  const checks = allChecks();
+  const errQ = new Set(checks.filter((c) => c.e).map((c) => c.i)).size;
+  const st = $('stats');
+  st.textContent = `Питань: ${M.qs.length} · питань з помилками: ${errQ} · фото: ${count}` + (count ? ` (≈ ${mb.toFixed(2)} МБ)` : '') +
+    (mb > 4 ? ' — багато для пам\'яті браузера (ліміт ≈ 5 МБ), стисніть фото' : '');
+  st.classList.toggle('warn', mb > 4);
+  $('btn-checks').textContent = 'Перевірка тесту' + (checks.length ? ` (${checks.length})` : '');
+}
+function renderChecks() {
+  const box = $('checks');
+  if (box.hidden) return;
+  box.innerHTML = '';
+  const items = allChecks();
+  if (!items.length) { box.append(h('div', { text: 'Помилок не знайдено.' })); return; }
+  items.forEach((c) => {
+    const d = h('div', { class: c.e ? 'e' : 'w', text: `Питання ${c.i + 1}: ${c.m}` + (c.e ? '' : ' (попередження)') });
+    d.onclick = () => select(c.i);
+    box.append(d);
+  });
+}
+function select(i) {
+  sel = i;
+  renderSidebar();
+  renderEditor();
+  if (window.innerWidth <= 800) $('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ---------- Операції з питаннями ---------- */
+function moveQuestion(from, to) {
+  if (from === to || from < 0 || to < 0 || from >= M.qs.length || to >= M.qs.length) return;
+  const keep = cur();
+  const [q] = M.qs.splice(from, 1);
+  M.qs.splice(to, 0, q);
+  sel = keep ? M.qs.indexOf(keep) : -1;
+  touch(); renderSidebar(); renderEditor();
+}
+function addQuestion(type) {
+  M.qs.push(blank(type));
+  touch();
+  select(M.qs.length - 1);
+  const ta = $('editor').querySelector('[data-f="question"]');
+  if (ta) ta.focus();
+  $('qlist').lastElementChild && $('qlist').lastElementChild.scrollIntoView({ block: 'nearest' });
+}
+function duplicateQuestion(i) {
+  const c = JSON.parse(JSON.stringify(M.qs[i]));
+  c.uid = uid++;
+  M.qs.splice(i + 1, 0, c);
+  touch(); select(i + 1);
+}
+function deleteQuestion(i) {
+  if (!confirm(`Видалити питання ${i + 1}? Цю дію не можна скасувати.`)) return;
+  M.qs.splice(i, 1);
+  sel = M.qs.length ? Math.min(i, M.qs.length - 1) : -1;
+  touch(); renderSidebar(); renderEditor();
+}
+function switchType(q, nt) {
+  const old = q.type;
+  if (nt === old) return;
+  if (old === 'multiple-choice' && nt === 'single-choice') q.cSingle = q.cMulti[0] || q.cSingle;
+  if (old === 'single-choice' && nt === 'multiple-choice') q.cMulti = q.cSingle ? [q.cSingle] : q.cMulti;
+  q.type = nt;
+  ensure(q);
+  touch(); renderEditor();
+}
+
+/* ---------- Редактор ---------- */
+let pendingFocus = null;
+function rerender(focus) { pendingFocus = focus || null; renderEditor(); }
+
+function renderEditor() {
+  const box = $('editor');
+  box.innerHTML = '';
+  const q = cur();
+  if (!q) {
+    box.append(h('div', { class: 'empty' },
+      h('p', { text: M.qs.length ? 'Оберіть питання зліва.' : 'Тест порожній. Завантажте наявний JSON або почніть новий.' }),
+      h('div', { class: 'actions' },
+        h('button', { text: 'Завантажити тест', onclick: () => $('file-in').click() }),
+        h('button', { class: 'secondary', text: 'Додати питання', onclick: () => addQuestion($('add-type').value) }))));
+    return;
+  }
+  const i = sel, n = M.qs.length;
+
+  /* Шапка з діями */
+  const pos = h('input', { type: 'number', min: 1, max: n, placeholder: '№', 'aria-label': 'Номер позиції' });
+  const goto = () => { const p = parseInt(pos.value, 10); if (p >= 1 && p <= n) moveQuestion(i, p - 1); };
+  pos.onkeydown = (e) => { if (e.key === 'Enter') goto(); };
+  box.append(h('div', { class: 'qhead' },
+    h('h2', { text: `Питання ${i + 1} з ${n}` }),
+    h('button', { class: 'secondary small', text: '↑', title: 'Підняти', disabled: i === 0, onclick: () => moveQuestion(i, i - 1) }),
+    h('button', { class: 'secondary small', text: '↓', title: 'Опустити', disabled: i === n - 1, onclick: () => moveQuestion(i, i + 1) }),
+    pos,
+    h('button', { class: 'secondary small', text: 'Перемістити на №', onclick: goto }),
+    h('button', { class: 'secondary small', text: 'Дублювати', onclick: () => duplicateQuestion(i) }),
+    h('button', { class: 'danger small', text: 'Видалити', onclick: () => deleteQuestion(i) })));
+
+  box.append(h('div', { id: 'qprob' }));
+
+  /* Тип, тема */
+  const typeSel = h('select', { value: q.type, onchange: () => switchType(q, typeSel.value) },
+    Object.entries(TYPES).map(([k, v]) => h('option', { value: k, text: v })));
+  typeSel.value = q.type;
+  const topics = [...new Set(M.qs.map((x) => x.topic.trim()).filter(Boolean))];
+  const topic = h('input', { type: 'text', list: 'topics', value: q.topic, placeholder: 'Без теми', oninput: () => { q.topic = topic.value; touch(); } });
+  box.append(h('div', { class: 'row2' },
+    h('label', { class: 'f' }, h('span', { class: 'lbl', text: 'Тип питання' }), typeSel),
+    h('label', { class: 'f' }, h('span', { class: 'lbl', text: 'Тема (блок)' }), topic,
+      h('datalist', { id: 'topics' }, topics.map((t) => h('option', { value: t }))))));
+
+  /* Текст питання */
+  const qt = h('textarea', { rows: 2, value: q.question, placeholder: 'Текст питання', 'data-f': 'question', oninput: () => { q.question = qt.value; autogrow(qt); touch(); } });
+  box.append(h('label', { class: 'f' }, h('span', { class: 'lbl', text: 'Питання' }), qt));
+
+  box.append(renderImages(q));
+  box.append(renderAnswers(q));
+  box.append(renderExplanation(q));
+
+  box.querySelectorAll('textarea').forEach(autogrow);
+  updateProblems();
+  if (pendingFocus) {
+    const f = box.querySelector(`[data-f="${pendingFocus}"]`);
+    if (f) f.focus();
+    pendingFocus = null;
+  }
+}
+
+function updateProblems() {
+  const box = $('qprob');
+  const q = cur();
+  if (!box || !q) return;
+  box.innerHTML = '';
+  const v = validate(q);
+  if (v.E.length) box.append(h('div', { class: 'prob e' }, v.E.map((m) => h('div', { text: '⚠ ' + m }))));
+  if (v.W.length) box.append(h('div', { class: 'prob w' }, v.W.map((m) => h('div', { text: m }))));
+}
+
+/* ---------- Відповіді за типами ---------- */
+function removeFrom(q, list, idx) {
+  const [it] = q[list].splice(idx, 1);
+  if (list === 'choices') {
+    if (q.cSingle === it.key) q.cSingle = '';
+    q.cMulti = q.cMulti.filter((k) => k !== it.key);
+    delete q.cMap[it.key];
+  } else {
+    Object.keys(q.cMap).forEach((k) => { if (q.cMap[k] === it.key) delete q.cMap[k]; });
+  }
+}
+function renameKey(q, list, from, to) {
+  if (list === 'choices') {
+    if (q.cSingle === from) q.cSingle = to;
+    q.cMulti = q.cMulti.map((k) => (k === from ? to : k));
+    if (from in q.cMap) { q.cMap[to] = q.cMap[from]; delete q.cMap[from]; }
+  } else {
+    Object.keys(q.cMap).forEach((k) => { if (q.cMap[k] === from) q.cMap[k] = to; });
+  }
+}
+
+/* o: { mark: 'radio' | 'check' | null, pos: bool, keyEdit: bool, extra: Node, textChange: fn } */
+function optRow(q, list, idx, o) {
+  const arr = q[list];
+  const it = arr[idx];
+  const row = h('div', { class: 'opt' });
+  if (o.mark === 'radio') {
+    row.append(h('input', { type: 'radio', name: 'r' + q.uid, checked: q.cSingle === it.key, title: 'Правильна відповідь', 'aria-label': 'Правильна відповідь', onchange: () => { q.cSingle = it.key; touch(); } }));
+  } else if (o.mark === 'check') {
+    row.append(h('input', { type: 'checkbox', checked: q.cMulti.includes(it.key), title: 'Правильна відповідь', 'aria-label': 'Правильна відповідь', onchange: (e) => {
+      q.cMulti = e.target.checked ? [...q.cMulti, it.key] : q.cMulti.filter((k) => k !== it.key);
+      touch(); rerender();
+    } }));
+  }
+  if (o.pos) row.append(h('span', { class: 'pos', text: (idx + 1) + '.' }));
+  if (o.keyEdit) {
+    const k = h('input', { type: 'text', class: 'keyin', value: it.key, title: 'Ключ', 'aria-label': 'Ключ' });
+    k.onchange = () => { const from = it.key; it.key = k.value.trim(); renameKey(q, list, from, it.key); touch(); rerender(); };
+    row.append(k);
+  }
+  const ta = h('textarea', { rows: 1, value: it.text, placeholder: 'Текст', 'data-f': `${list}-${idx}`, oninput: () => { it.text = ta.value; autogrow(ta); touch(); } });
+  if (o.textChange) ta.onchange = o.textChange;
+  row.append(ta);
+  if (o.extra) row.append(o.extra);
+  const min = list === 'choices' && q.type === 'ordering' ? 2 : 1;
+  row.append(h('div', { class: 'btns' },
+    h('button', { class: 'secondary icon', text: '↑', title: 'Вгору', disabled: idx === 0, onclick: () => { move(arr, idx, -1); touch(); rerender(); } }),
+    h('button', { class: 'secondary icon', text: '↓', title: 'Вниз', disabled: idx === arr.length - 1, onclick: () => { move(arr, idx, 1); touch(); rerender(); } }),
+    h('button', { class: 'danger icon', text: '✕', title: 'Видалити', disabled: arr.length <= min && list === 'choices' && q.type === 'ordering', onclick: () => { removeFrom(q, list, idx); touch(); rerender(); } })));
+  return row;
+}
+function addItem(q, list, style) {
+  q[list].push({ key: nextKey(q[list], style), text: '' });
+  touch();
+  rerender(`${list}-${q[list].length - 1}`);
+}
+
+function renderAnswers(q) {
+  const sec = h('div', { class: 'sec' });
+  const t = q.type;
+  if (t === 'single-choice' || t === 'multiple-choice') {
+    const multi = t === 'multiple-choice';
+    sec.append(h('div', { class: 'sec-head' }, h('h3', { text: 'Варіанти відповідей' })));
+    sec.append(h('p', { class: 'hint', text: multi ? 'Позначте галочками всі правильні варіанти.' : 'Позначте кружечком правильний варіант.' }));
+    q.choices.forEach((_, idx) => sec.append(optRow(q, 'choices', idx, { mark: multi ? 'check' : 'radio', keyEdit: true })));
+    sec.append(h('button', { class: 'secondary small', text: '+ Додати варіант', onclick: () => addItem(q, 'choices') }));
+    if (multi) sec.append(minMax(q));
+  } else if (t === 'matching-question') {
+    const cols = h('div', { class: 'cols' });
+    const left = h('div'), right = h('div');
+    left.append(h('h3', { text: 'Ліва колонка (пункти)' }));
+    right.append(h('h3', { text: 'Права колонка (пари; зайві стануть відволікаючими)' }));
+    q.choices.forEach((it, idx) => {
+      const s = h('select', { 'aria-label': 'Правильна пара' },
+        h('option', { value: '', text: '— пара —' }),
+        q.matches.map((m) => h('option', { value: m.key, text: `${m.key}. ${m.text.slice(0, 40)}` })));
+      s.value = q.cMap[it.key] !== undefined && q.matches.some((m) => m.key === q.cMap[it.key]) ? q.cMap[it.key] : '';
+      s.onchange = () => { if (s.value === '') delete q.cMap[it.key]; else q.cMap[it.key] = s.value; touch(); };
+      left.append(optRow(q, 'choices', idx, { keyEdit: true, extra: s }));
+    });
+    left.append(h('button', { class: 'secondary small', text: '+ Додати пункт', onclick: () => addItem(q, 'choices') }));
+    q.matches.forEach((_, idx) => right.append(optRow(q, 'matches', idx, { keyEdit: true, textChange: () => rerender() })));
+    right.append(h('button', { class: 'secondary small', text: '+ Додати пару', onclick: () => addItem(q, 'matches', 'num') }));
+    cols.append(left, right);
+    sec.append(cols);
+  } else if (t === 'ordering') {
+    sec.append(h('div', { class: 'sec-head' }, h('h3', { text: 'Правильна послідовність' })));
+    sec.append(h('p', { class: 'hint', text: 'Розташуйте пункти в правильному порядку: зверху — перший. У тесті їх буде показано перемішаними, ключі розставляються автоматично.' }));
+    q.choices.forEach((_, idx) => sec.append(optRow(q, 'choices', idx, { pos: true })));
+    sec.append(h('button', { class: 'secondary small', text: '+ Додати пункт', onclick: () => addItem(q, 'choices', 'num') }));
+  } else if (t === 'true-false') {
+    sec.append(h('div', { class: 'sec-head' }, h('h3', { text: 'Правильна відповідь' })));
+    [[true, 'Правда'], [false, 'Неправда']].forEach(([v, label]) => {
+      sec.append(h('label', { class: 'opt', style: 'align-items:center;cursor:pointer' },
+        h('input', { type: 'radio', name: 'tf' + q.uid, checked: q.cBool === v, onchange: () => { q.cBool = v; touch(); } }),
+        h('span', { text: label })));
+    });
+  }
+  return sec;
+}
+
+function minMax(q) {
+  const wrap = h('div', { class: 'minmax' });
+  const num = (key, ph) => {
+    const inp = h('input', { type: 'number', min: 1, step: 1, value: q[key] === null ? '' : q[key], placeholder: ph });
+    inp.oninput = () => { const v = parseInt(inp.value, 10); q[key] = Number.isInteger(v) ? v : null; touch(); hint(); };
+    return inp;
+  };
+  const info = h('span', { class: 'muted' });
+  const fix = h('button', { class: 'secondary small', text: 'Підігнати min/max' });
+  const hint = () => {
+    const min = q.min ?? 1, max = q.max ?? 3, n = q.cMulti.length;
+    info.textContent = `Правильних: ${n}. Діапазон вибору: від ${min} до ${max} (за замовчуванням 1–3).`;
+    fix.hidden = !(n && (n < min || n > max));
+  };
+  fix.onclick = () => { const n = q.cMulti.length; if (n < (q.min ?? 1)) q.min = n; if (n > (q.max ?? 3)) q.max = n; touch(); rerender(); };
+  wrap.append(h('span', { text: 'Мін.:' }), num('min', '1'), h('span', { text: 'Макс.:' }), num('max', '3'), info, fix);
+  hint();
+  return wrap;
+}
+
+/* ---------- Пояснення ---------- */
+function renderExplanation(q) {
+  const sec = h('div', { class: 'sec' });
+  const open = q.explOpen || q.explanation.trim();
+  const head = h('div', { class: 'sec-head' }, h('h3', { text: 'Пояснення' }));
+  if (!open) {
+    head.append(h('button', { class: 'secondary small', text: '+ Додати пояснення', onclick: () => { q.explOpen = true; rerender('explanation'); } }));
+    sec.append(head, h('p', { class: 'hint', text: 'Пояснення необов\'язкове: воно показується після відповіді на питання.' }));
+    return sec;
+  }
+  head.append(h('button', { class: 'danger small', text: 'Видалити пояснення', onclick: () => { q.explanation = ''; q.explOpen = false; touch(); rerender(); } }));
+  const ta = h('textarea', { rows: 3, value: q.explanation, placeholder: 'Чому правильна саме така відповідь', 'data-f': 'explanation', oninput: () => { q.explanation = ta.value; autogrow(ta); touch(); } });
+  sec.append(head, ta);
+  return sec;
+}
+
+/* ---------- Зображення ---------- */
+const readUrl = (file) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(file); });
+const loadImg = (src) => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('Не вдалося прочитати зображення')); im.src = src; });
+const compressible = (url) => /^data:image\/(png|jpe?g|webp);/i.test(url);
+
+async function compressUrl(url) {
+  const im = await loadImg(url);
+  const s = Math.min(1, S.maxSide / Math.max(im.naturalWidth, im.naturalHeight));
+  const w = Math.max(1, Math.round(im.naturalWidth * s)), hh = Math.max(1, Math.round(im.naturalHeight * s));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = hh;
+  const g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0, 0, w, hh);
+  g.drawImage(im, 0, 0, w, hh);
+  const out = c.toDataURL('image/jpeg', S.quality);
+  return out.length < url.length ? out : url;
+}
+async function addImages(q, files) {
+  let added = 0, failed = 0;
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) { failed++; continue; }
+    try {
+      let url = await readUrl(f);
+      if (S.compress && compressible(url)) url = await compressUrl(url);
+      q.images.push(url); added++;
+    } catch (e) { failed++; }
+  }
+  if (added) { touch(); if (cur() === q) renderEditor(); }
+  toast(added ? `Додано фото: ${added}` + (failed ? `, пропущено: ${failed}` : '') : 'Не вдалося додати фото', !added);
+}
+async function recompress(q) {
+  let saved = 0;
+  for (let i = 0; i < q.images.length; i++) {
+    if (!compressible(q.images[i])) continue;
+    try { const out = await compressUrl(q.images[i]); saved += q.images[i].length - out.length; q.images[i] = out; } catch (e) {}
+  }
+  touch(); renderEditor();
+  toast(saved > 0 ? `Стиснуто, зекономлено ≈ ${Math.round(saved * 0.75 / 1024)} КБ` : 'Далі стискати нікуди');
+}
+function dataUrlToBlob(u) {
+  const [head, b64] = u.split(',');
+  const mime = (/^data:([^;,]+)/.exec(head) || [])[1] || 'application/octet-stream';
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return { blob: new Blob([arr], { type: mime }), mime };
+}
+function saveBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function downloadImage(q, k) {
+  try {
+    const { blob, mime } = dataUrlToBlob(q.images[k]);
+    saveBlob(blob, `pytannia${M.qs.indexOf(q) + 1}_foto${k + 1}.${EXT[mime] || mime.split('/')[1] || 'bin'}`);
+  } catch (e) { toast('Не вдалося скачати це зображення (пошкоджений Data URL)', true); }
+}
+
+function renderImages(q) {
+  const sec = h('div', { class: 'sec' });
+  const input = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true });
+  input.onchange = () => { const fs = [...input.files]; input.value = ''; addImages(q, fs); };
+  const head = h('div', { class: 'sec-head' }, h('h3', { text: `Зображення (${q.images.length})` }),
+    h('button', { class: 'secondary small', text: '+ Додати фото', onclick: () => input.click() }),
+    q.images.length ? h('button', { class: 'secondary small', text: 'Скачати всі', onclick: () => q.images.forEach((_, k) => setTimeout(() => downloadImage(q, k), k * 350)) }) : null,
+    q.images.length ? h('button', { class: 'secondary small', text: 'Стиснути наявні', onclick: () => recompress(q) }) : null,
+    input);
+  sec.append(head);
+
+  const cb = h('input', { type: 'checkbox', checked: S.compress, onchange: () => { S.compress = cb.checked; } });
+  const ms = h('input', { type: 'number', min: 100, max: 4000, step: 50, value: S.maxSide, onchange: () => { S.maxSide = Math.min(4000, Math.max(100, parseInt(ms.value, 10) || 1000)); ms.value = S.maxSide; } });
+  const ql = h('input', { type: 'number', min: 10, max: 100, step: 5, value: Math.round(S.quality * 100), onchange: () => { S.quality = Math.min(100, Math.max(10, parseInt(ql.value, 10) || 80)) / 100; ql.value = Math.round(S.quality * 100); } });
+  sec.append(h('div', { class: 'img-set' },
+    h('label', {}, cb, ' Стискати нові фото (PNG/JPEG/WebP → JPEG)'),
+    h('label', {}, 'макс. сторона, px: ', ms),
+    h('label', {}, 'якість, %: ', ql)));
+
+  if (q.images.length) {
+    const wrap = h('div', { class: 'imgs' });
+    q.images.forEach((src, k) => {
+      const img = h('img', { src, alt: `Зображення ${k + 1}`, title: 'Натисніть, щоб збільшити' });
+      img.onclick = () => { $('lb-img').src = src; $('lb').hidden = false; };
+      wrap.append(h('div', { class: 'img-card' }, img,
+        h('div', { class: 'muted', text: `${k + 1} · ${kb(src)} КБ` + (DATA_URL.test(src) ? '' : ' · ⚠ не Data URL') }),
+        h('div', { class: 'btns' },
+          h('button', { class: 'secondary', text: '←', title: 'Ліворуч', disabled: k === 0, onclick: () => { move(q.images, k, -1); touch(); renderEditor(); } }),
+          h('button', { class: 'secondary', text: '→', title: 'Праворуч', disabled: k === q.images.length - 1, onclick: () => { move(q.images, k, 1); touch(); renderEditor(); } }),
+          h('button', { class: 'secondary', text: '⬇', title: 'Скачати', onclick: () => downloadImage(q, k) }),
+          h('button', { class: 'danger', text: '✕', title: 'Видалити', onclick: () => { q.images.splice(k, 1); touch(); renderEditor(); } }))));
+    });
+    sec.append(wrap);
+  }
+  const drop = h('div', { class: 'drop', text: 'Перетягніть фото сюди або вставте з буфера (Ctrl+V)' });
+  drop.ondragover = (e) => { if ([...(e.dataTransfer.types || [])].includes('Files')) { e.preventDefault(); drop.classList.add('over'); } };
+  drop.ondragleave = () => drop.classList.remove('over');
+  drop.ondrop = (e) => { e.preventDefault(); drop.classList.remove('over'); addImages(q, [...e.dataTransfer.files]); };
+  sec.append(drop);
+  return sec;
+}
+document.addEventListener('paste', (e) => {
+  const q = cur();
+  const files = [...((e.clipboardData && e.clipboardData.files) || [])].filter((f) => f.type.startsWith('image/'));
+  if (q && files.length) { e.preventDefault(); addImages(q, files); }
+});
+$('lb').onclick = () => { $('lb').hidden = true; };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('lb').hidden = true; });
+
+/* ---------- Файли: завантаження, створення, збереження ---------- */
+function detectKeyStyle(qs) {
+  for (const q of qs) {
+    if (q.type === 'ordering' || q.type === 'true-false' || !q.choices.length) continue;
+    const k = q.choices[0].key;
+    if (/[А-ЯІЇЄҐа-яіїєґ]/.test(k)) return 'cyr';
+    if (/[A-Za-z]/.test(k)) return 'lat';
+    if (/\d/.test(k)) return 'num';
+  }
+  return keyStyle;
+}
+function setTest(qs, name) {
+  M = { qs };
+  keyStyle = detectKeyStyle(qs);
+  $('key-style').value = keyStyle;
+  $('fname').value = name || 'test.json';
+  sel = qs.length ? 0 : -1;
+  dirty = false;
+  renderSidebar(); renderEditor(); renderChecks();
+}
+async function loadFile(file) {
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast('Некоректний JSON: ' + e.message, true); }
+  if (!Array.isArray(data)) return toast('Корінь файлу має бути масивом питань.', true);
+  if (dirty && M.qs.length && !confirm('Є незбережені зміни. Замінити поточний тест завантаженим?')) return;
+  setTest(data.map(fromObj), file.name);
+  const bad = allChecks().filter((c) => c.e).length;
+  toast(`Завантажено питань: ${data.length}` + (bad ? `. Знайдено проблем: ${bad} — див. «Перевірка тесту»` : ''), bad > 0);
+  saveDraft();
+}
+$('btn-load').onclick = () => $('file-in').click();
+$('file-in').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) loadFile(f); };
+$('btn-new').onclick = () => {
+  if (dirty && M.qs.length && !confirm('Є незбережені зміни. Почати новий тест?')) return;
+  setTest([blank('single-choice')], 'test.json');
+  dirty = false;
+};
+$('btn-download').onclick = () => {
+  if (!M.qs.length) return toast('У тесті немає питань.', true);
+  const errs = allChecks().filter((c) => c.e);
+  if (errs.length && !confirm(`У тесті є помилки (${errs.length}), програма-тест такий файл відхилить.\nСкачати все одно?`)) {
+    $('checks').hidden = false; renderChecks();
+    return;
+  }
+  let name = $('fname').value.trim() || 'test.json';
+  if (!/\.json$/i.test(name)) name += '.json';
+  $('fname').value = name;
+  saveBlob(new Blob([JSON.stringify(exportAll(), null, 2)], { type: 'application/json' }), name);
+  dirty = false;
+};
+$('btn-checks').onclick = () => { $('checks').hidden = !$('checks').hidden; renderChecks(); };
+$('key-style').onchange = () => { keyStyle = $('key-style').value; };
+$('filter').oninput = renderSidebar;
+$('add-type').append(...Object.entries(TYPES).map(([k, v]) => h('option', { value: k, text: v })));
+$('btn-add').onclick = () => addQuestion($('add-type').value);
+
+/* ---------- Старт: пропозиція відновити чернетку ---------- */
+(function init() {
+  renderSidebar();
+  renderEditor();
+  let draft = null;
+  try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (e) {}
+  if (draft && Array.isArray(draft.data) && draft.data.length) {
+    $('banner-text').textContent = `Знайдено чернетку (питань: ${draft.data.length}, файл ${draft.fileName || 'test.json'}). Відновити?`;
+    $('banner').hidden = false;
+    $('banner-yes').onclick = () => {
+      $('banner').hidden = true;
+      setTest(draft.data.map(fromObj), draft.fileName);
+      if (draft.keyStyle) { keyStyle = draft.keyStyle; $('key-style').value = keyStyle; }
+      dirty = true;
+    };
+    $('banner-no').onclick = () => { $('banner').hidden = true; try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} };
+  }
+})();
+</script>
+</body>
+</html>
