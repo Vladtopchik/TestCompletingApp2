@@ -240,10 +240,11 @@ const TYPES = {
   'multiple-choice': 'Кілька варіантів',
   'matching-question': 'Відповідності',
   'ordering': 'Послідовність',
-  'true-false': 'Правда / неправда'
+  'true-false': 'Правда / неправда',
+  'short-answer': 'Коротка відповідь'
 };
 const ALIASES = { 'multiple-choices': 'multiple-choice', 'match-choices': 'matching-question', 'matching': 'matching-question' };
-const KNOWN = new Set(['index', 'question', 'type', 'topic', 'explanation', 'images', 'choices', 'matches', 'correct', 'min', 'max']);
+const KNOWN = new Set(['index', 'question', 'type', 'topic', 'explanation', 'images', 'choices', 'matches', 'correct', 'min', 'max', 'case-sensitive']);
 const ALPH = { cyr: 'АБВГДЕЖЗИКЛМНОП'.split(''), lat: 'ABCDEFGHIJKLMNOP'.split('') };
 const DATA_URL = /^data:image\/[\w.+-]+;base64,/i;
 const EXT = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
@@ -270,13 +271,14 @@ function nextKey(list, style) {
 function raw(type) {
   return {
     uid: uid++, type, question: '', topic: '', explanation: '', explOpen: false, images: [],
-    choices: [], matches: [], cSingle: '', cMulti: [], cMap: {}, cBool: true, min: null, max: null, extra: {}
+    choices: [], matches: [], cSingle: '', cMulti: [], cMap: {}, cBool: true, cAnswers: [''], caseSens: false, min: null, max: null, extra: {}
   };
 }
 /* Дописує порожні елементи, щоб питання мало мінімально придатний вигляд */
 function ensure(q) {
   const t = q.type;
   if (t === 'true-false') return;
+  if (t === 'short-answer') { if (!Array.isArray(q.cAnswers) || !q.cAnswers.length) q.cAnswers = ['']; return; }
   const fresh = q.choices.length === 0;
   const need = fresh ? (t === 'ordering' ? 3 : t === 'matching-question' ? 3 : 4) : (t === 'ordering' ? 2 : 1);
   while (q.choices.length < need) q.choices.push({ key: t === 'ordering' ? nextKey(q.choices, 'num') : nextKey(q.choices), text: '' });
@@ -309,7 +311,11 @@ function fromObj(o) {
   else if (q.type === 'matching-question') {
     if (isObj(c)) Object.entries(c).forEach(([k, v]) => { q.cMap[k] = String(v); });
   } else if (q.type === 'true-false') q.cBool = typeof c === 'boolean' ? c : true;
-  else if (q.type === 'ordering' && Array.isArray(c)) {
+  else if (q.type === 'short-answer') {
+    const arr = Array.isArray(c) ? c : c === null || c === undefined ? [] : [c];
+    q.cAnswers = arr.filter((v) => typeof v === 'string' || typeof v === 'number').map(String);
+    q.caseSens = o['case-sensitive'] === true;
+  } else if (q.type === 'ordering' && Array.isArray(c)) {
     /* У конструкторі порядок пунктів = правильний порядок */
     const byKey = new Map(q.choices.map((x) => [x.key, x]));
     const ordered = [];
@@ -372,6 +378,12 @@ function toObj(q, i) {
     }
     case 'ordering': { const r = orderingExport(q); o.choices = r.choices; o.correct = r.correct; break; }
     case 'true-false': o.correct = q.cBool; break;
+    case 'short-answer': {
+      const a = q.cAnswers.map((x) => x.trim()).filter(Boolean);
+      o.correct = a.length === 1 ? a[0] : a;
+      if (q.caseSens) o['case-sensitive'] = true;
+      break;
+    }
   }
   return Object.assign(o, q.extra);
 }
@@ -384,6 +396,15 @@ function validate(q) {
   if (!q.question.trim()) E.push('порожній текст питання');
   q.images.forEach((s, i) => { if (!DATA_URL.test(s)) E.push(`зображення ${i + 1} не є Data URL у форматі data:image/...;base64,...`); });
   if (t === 'true-false') return { E, W };
+  if (t === 'short-answer') {
+    const a = q.cAnswers.map((x) => x.trim());
+    const good = a.filter(Boolean);
+    if (!good.length) E.push('потрібна хоча б одна правильна відповідь');
+    else if (good.length !== a.length) W.push('є порожні варіанти відповіді — вони будуть пропущені');
+    const norm = good.map((x) => (q.caseSens ? x : x.toLowerCase()).replace(/\s+/g, ' '));
+    if (new Set(norm).size !== norm.length) W.push('серед допустимих відповідей є дублікати');
+    return { E, W };
+  }
 
   const checkKeys = (list, label) => {
     const seen = new Set();
@@ -958,6 +979,20 @@ function renderAnswers(q) {
     sec.append(h('p', { class: 'hint', text: 'Розташуйте пункти в правильному порядку: зверху — перший. У тесті їх буде показано перемішаними, ключі розставляються автоматично.' }));
     q.choices.forEach((_, idx) => sec.append(optRow(q, 'choices', idx, { pos: true })));
     sec.append(h('button', { class: 'secondary small', text: '+ Додати пункт', onclick: () => addItem(q, 'choices', 'num') }));
+  } else if (t === 'short-answer') {
+    sec.append(h('div', { class: 'sec-head' }, h('h3', { text: 'Допустимі відповіді' })));
+    sec.append(h('p', { class: 'hint', text: 'Відповідь зарахується, якщо збігається з будь-яким із варіантів. Числа порівнюються за значенням (3,5 = 3.5 = 3.50), дроби й вирази (наприклад, 7/2) — лише як текст, тому перелічіть усі допустимі записи. Пробіли по краях і зайві пробіли ігноруються.' }));
+    q.cAnswers.forEach((val, idx) => {
+      const inp = h('input', { type: 'text', value: val, placeholder: 'Правильна відповідь', 'aria-label': 'Правильна відповідь', 'data-f': `ans-${idx}`, style: 'flex:1' });
+      inp.oninput = () => { q.cAnswers[idx] = inp.value; touch(); };
+      sec.append(h('div', { class: 'opt', style: 'align-items:center' },
+        inp,
+        h('button', { class: 'danger icon', text: '✕', title: 'Видалити', disabled: q.cAnswers.length <= 1, onclick: () => { q.cAnswers.splice(idx, 1); touch(); rerender(); } })));
+    });
+    sec.append(h('button', { class: 'secondary small', text: '+ Додати варіант відповіді', onclick: () => { q.cAnswers.push(''); touch(); rerender(`ans-${q.cAnswers.length - 1}`); } }));
+    sec.append(h('label', { class: 'opt', style: 'align-items:center;cursor:pointer;margin-top:8px' },
+      h('input', { type: 'checkbox', checked: q.caseSens, onchange: (e) => { q.caseSens = e.target.checked; touch(); rerender(); } }),
+      h('span', { text: 'Враховувати регістр літер (case-sensitive)' })));
   } else if (t === 'true-false') {
     sec.append(h('div', { class: 'sec-head' }, h('h3', { text: 'Правильна відповідь' })));
     [[true, 'Правда'], [false, 'Неправда']].forEach(([v, label]) => {
@@ -1117,7 +1152,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('lb').hi
 /* ---------- Файли: завантаження, створення, збереження ---------- */
 function detectKeyStyle(qs) {
   for (const q of qs) {
-    if (q.type === 'ordering' || q.type === 'true-false' || !q.choices.length) continue;
+    if (q.type === 'ordering' || q.type === 'true-false' || q.type === 'short-answer' || !q.choices.length) continue;
     const k = q.choices[0].key;
     if (/[А-ЯІЇЄҐа-яіїєґ]/.test(k)) return 'cyr';
     if (/[A-Za-z]/.test(k)) return 'lat';
