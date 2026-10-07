@@ -150,6 +150,31 @@ label.f input[type=text], label.f select { width: 100%; }
 #toast.err { background: var(--bad); }
 #lb { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(0,0,0,.85); cursor: zoom-out; }
 #lb img { max-width: 100%; max-height: 100%; object-fit: contain; background: #fff; border-radius: 8px; }
+
+/* Форматування */
+.fmt-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 10px; }
+div.f { font-weight: 600; font-size: .9rem; }
+div.f > :not(.lbl) { font-weight: 400; margin-top: 3px; }
+.rt { flex: 1; min-width: 0; width: 100%; }
+.rt-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 4px; }
+.rt-bar button { min-width: 30px; font-weight: 600; }
+.rt-bar input[type=color] { width: 32px; height: 28px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: none; cursor: pointer; }
+.rt-bar select { padding: 3px 6px; }
+.rt-ed { padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); word-break: break-word; }
+.rt-ed:empty::before { content: attr(data-ph); color: var(--muted); }
+.rt-atom { display: inline-block; padding: 0 4px; border: 1px dashed var(--accent); border-radius: 4px; cursor: pointer; }
+.rt-flip { border-bottom: 1px dotted var(--muted); }
+.fmt-b { font-weight: 800; } .fmt-i { font-style: italic; } .fmt-u { text-decoration: underline; } .fmt-s { text-decoration: line-through; }
+.fmt-fill { padding: 0 .2em; border-radius: 3px; } .fmt-link { color: var(--accent); text-decoration: underline; }
+.tex-ov { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(0, 0, 0, .6); }
+.tex-box { width: min(720px, 100%); max-height: 92vh; overflow: auto; display: flex; flex-direction: column; gap: 8px; padding: 14px; background: var(--card); border-radius: 12px; }
+.tex-grp { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.tex-grp b { width: 100%; font-size: .8rem; color: var(--muted); }
+.tex-b { padding: 4px 9px; min-width: 34px; }
+.tex-pv { min-height: 3em; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 1.2em; overflow-x: auto; }
+.tex-act { display: flex; gap: 8px; }
+.qi .qt .rt-atom { border: 0; padding: 0; cursor: inherit; }
+.qi .qt sup, .qi .qt sub { line-height: 0; }
 </style>
 </head>
 <body>
@@ -244,7 +269,7 @@ const TYPES = {
   'short-answer': 'Коротка відповідь'
 };
 const ALIASES = { 'multiple-choices': 'multiple-choice', 'match-choices': 'matching-question', 'matching': 'matching-question' };
-const KNOWN = new Set(['index', 'question', 'type', 'topic', 'explanation', 'images', 'choices', 'matches', 'correct', 'min', 'max', 'case-sensitive']);
+const KNOWN = new Set(['index', 'question', 'type', 'topic', 'explanation', 'images', 'choices', 'matches', 'correct', 'min', 'max', 'case-sensitive', 'format']);
 const ALPH = { cyr: 'АБВГДЕЖЗИКЛМНОП'.split(''), lat: 'ABCDEFGHIJKLMNOP'.split('') };
 const DATA_URL = /^data:image\/[\w.+-]+;base64,/i;
 const EXT = { 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/svg+xml': 'svg' };
@@ -257,7 +282,7 @@ let sel = -1;
 let uid = 1;
 let keyStyle = 'cyr';
 let dragIdx = -1;
-const S = { compress: true, maxSide: 1000, quality: 0.8 };
+const S = { compress: true, maxSide: 1000, quality: 0.8, fmtMode: 'visual' };
 
 function nextKey(list, style) {
   const st = style || keyStyle;
@@ -270,7 +295,7 @@ function nextKey(list, style) {
 
 function raw(type) {
   return {
-    uid: uid++, type, question: '', topic: '', explanation: '', explOpen: false, images: [],
+    uid: uid++, type, question: '', topic: '', explanation: '', format: false, explOpen: false, images: [],
     choices: [], matches: [], cSingle: '', cMulti: [], cMap: {}, cBool: true, cAnswers: [''], caseSens: false, min: null, max: null, extra: {}
   };
 }
@@ -300,6 +325,7 @@ function fromObj(o) {
   q.question = strOf(o.question);
   q.topic = strOf(o.topic);
   q.explanation = strOf(o.explanation);
+  q.format = o.format === true;
   q.images = Array.isArray(o.images) ? o.images.filter((s) => typeof s === 'string') : [];
   q.choices = listOf(o.choices);
   q.matches = listOf(o.matches);
@@ -358,6 +384,7 @@ const toMap = (arr) => Object.fromEntries(arr.map((x) => [x.key, x.text]));
 
 function toObj(q, i) {
   const o = { index: i, question: q.question, type: q.type };
+  if (q.format) o.format = true;
   if (q.topic.trim()) o.topic = q.topic.trim();
   if (q.explanation.trim()) o.explanation = q.explanation.trim();
   if (q.images.length) o.images = [...q.images];
@@ -624,7 +651,7 @@ function questionItem(i) {
   const li = h('li', { class: 'qi' + (grouped ? ' nested' : '') + (i === sel ? ' active' : '') + (bad ? ' bad' : '') + (on ? ' checked' : ''), draggable: true, title: bad ? 'У питанні є помилки' : '' },
     cb,
     h('span', { class: 'qn', text: String(i + 1) }),
-    h('span', { class: 'qt', text: q.question.trim() || '(без тексту)' }),
+    h('span', { class: 'qt' }, q.format && q.question.trim() ? fmtLine(q.question.trim()) : (q.question.trim() || '(без тексту)')),
     h('span', { class: 'qm', text: meta }));
   const act = h('span', { class: 'qi-act' },
     h('button', { class: 'secondary', text: '↑', title: 'Підняти', 'aria-label': 'Підняти питання', disabled: !canStep(groupFor(i), -1), onclick: (e) => { e.stopPropagation(); stepGroup(groupFor(i), -1); } }),
@@ -723,7 +750,7 @@ function clearAll() {
 }
 function visibleIdx() {
   const f = $('filter').value.trim().toLowerCase();
-  return allIdx().filter((i) => !f || M.qs[i].question.toLowerCase().includes(f) || M.qs[i].topic.toLowerCase().includes(f) || String(i + 1) === f);
+  return allIdx().filter((i) => !f || qPlain(M.qs[i]).toLowerCase().includes(f) || M.qs[i].topic.toLowerCase().includes(f) || String(i + 1) === f);
 }
 function renderSelBar() {
   purgeChecked();
@@ -818,6 +845,508 @@ function switchType(q, nt) {
   touch(); renderEditor();
 }
 
+/* ---------- Розбір розмітки (той самий, що в плеєрі) ---------- */
+const FMT_MAX_DEPTH = 12;
+const FMT_ESC = '[]()\\';
+const FMT_SIMPLE = { bold: 1, italic: 1, underlined: 1, strikethrough: 1, superscript: 1, subscript: 1, upsidedown: 1, latex: 1 };
+const FMT_RAW = { latex: 1, code: 1 };
+
+function fmtColorOk(v) {
+  if (/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) return true;
+  return /^[a-z]{3,20}$/i.test(v) && typeof CSS !== 'undefined' && !!CSS.supports && CSS.supports('color', v);
+}
+/* Розмір: число (пікселі), або число з px / % / em. Занадто великі й малі значення обрізаються */
+function fmtSize(v) {
+  const m = /^(\d+(?:\.\d+)?)(px|%|em)?$/i.exec(v);
+  if (!m) return null;
+  const unit = (m[2] || 'px').toLowerCase();
+  const lim = { px: [6, 120], '%': [25, 500], em: [0.4, 6] }[unit];
+  return Math.min(lim[1], Math.max(lim[0], Number(m[1]))) + unit;
+}
+/* Колір тексту: або один колір (#000000), або варіанти для тем: dark:#000,light:#fff. Якщо варіанта для теми немає,
+   у цій темі лишається звичайний колір тексту. */
+function fmtColorSpec(arg) {
+  if (fmtColorOk(arg)) return { arg };
+  if (!/^(dark|light)\s*:/i.test(arg)) return null;
+  const spec = {};
+  for (const part of arg.split(',')) {
+    const m = /^\s*(dark|light)\s*:\s*(\S+)\s*$/i.exec(part);
+    if (!m) return null;
+    const k = m[1].toLowerCase();
+    if (spec[k] || !fmtColorOk(m[2])) return null;
+    spec[k] = m[2];
+  }
+  spec.arg = ['light', 'dark'].filter((k) => spec[k]).map((k) => k + ':' + spec[k]).join(',');
+  return spec;
+}
+/* Тег із назви й аргументу або null, якщо тег невідомий чи аргумент неправильний */
+function fmtMakeTag(name, arg) {
+  if (FMT_SIMPLE[name] === 1) return arg === '' ? { name } : null;
+  if (name === 'color') { const s = fmtColorSpec(arg); return s ? { name, ...s } : null; }
+  if (name === 'fill') return fmtColorOk(arg) ? { name, arg } : null;
+  if (name === 'link') return /^(https?:\/\/|mailto:)\S+$/i.test(arg) ? { name, arg } : null;
+  if (name === 'size') { const s = fmtSize(arg); return s ? { name, arg: s } : null; }
+  if (name === 'code') {
+    const m = /^(?:"([^"]{0,30})"|([\w+#.-]{1,30}))?$/.exec(arg);
+    return m ? { name, arg: (m[1] || m[2] || '').toLowerCase() } : null;
+  }
+  return null;
+}
+/* Група тегів: [a][b arg](  — повертає { tags, open } (open — позиція "(") або null */
+function fmtReadGroup(s, i) {
+  const tags = [];
+  let p = i;
+  while (s[p] === '[') {
+    const j = s.indexOf(']', p + 1);
+    if (j < 0) return null;
+    const inner = s.slice(p + 1, j);
+    if (inner.indexOf('[') >= 0) return null;
+    const m = /^\s*([a-z]+)(?:\s+([\s\S]*?))?\s*$/.exec(inner);
+    if (!m) return null;
+    const tag = fmtMakeTag(m[1], m[2] === undefined ? '' : m[2]);
+    if (!tag) return null;
+    tags.push(tag);
+    p = j + 1;
+  }
+  return tags.length && s[p] === '(' ? { tags, open: p } : null;
+}
+/* Закриваюча ")" з урахуванням вкладених дужок і екранування */
+function fmtFindClose(s, from) {
+  let depth = 0;
+  for (let i = from; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\') { i++; continue; }
+    if (c === '(') depth++;
+    else if (c === ')') { if (depth === 0) return i; depth--; }
+  }
+  return -1;
+}
+/* У latex і code вміст береться як є: знімаємо лише \( і \), а \\ лишається подвійним (потрібно для матриць) */
+function fmtUnescRaw(s) {
+  let o = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\' && i + 1 < s.length) {
+      const n = s[i + 1];
+      if (n === '(' || n === ')') { o += n; i++; continue; }
+      if (n === '\\') { o += '\\\\'; i++; continue; }
+    }
+    o += c;
+  }
+  return o;
+}
+/* Розбір у дерево: { text } | { tags, kids } | { tags, raw } */
+function fmtParse(s, depth = 0) {
+  const out = [];
+  let buf = '';
+  const flush = () => { if (buf) { out.push({ text: buf }); buf = ''; } };
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '\\' && i + 1 < s.length && FMT_ESC.indexOf(s[i + 1]) >= 0) { buf += s[i + 1]; i += 2; continue; }
+    if (c === '[' && depth < FMT_MAX_DEPTH) {
+      const g = fmtReadGroup(s, i);
+      const end = g ? fmtFindClose(s, g.open + 1) : -1;
+      if (g && end >= 0) {
+        flush();
+        const inner = s.slice(g.open + 1, end);
+        out.push(g.tags.some((t) => FMT_RAW[t.name])
+          ? { tags: g.tags, raw: fmtUnescRaw(inner) }
+          : { tags: g.tags, kids: fmtParse(inner, depth + 1) });
+        i = end + 1;
+        continue;
+      }
+    }
+    buf += c;
+    i++;
+  }
+  flush();
+  return out;
+}
+/* Той самий текст без розмітки (для копіювання, списків вибору тощо) */
+function fmtText(nodes) {
+  return nodes.map((n) => (n.text !== undefined ? n.text : n.raw !== undefined ? n.raw : fmtText(n.kids))).join('');
+}
+const fmtPlain = (s) => fmtText(fmtParse(String(s)));
+
+
+/* ---------- Форматування в конструкторі ---------- */
+let katexP = null;
+function loadKatex() {
+  if (window.katex) return Promise.resolve(window.katex);
+  if (!katexP) {
+    katexP = new Promise((res, rej) => {
+      const l = document.createElement('link');
+      l.rel = 'stylesheet'; l.href = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css';
+      document.head.append(l);
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js';
+      s.onload = () => (window.katex ? res(window.katex) : rej(new Error('katex')));
+      s.onerror = () => rej(new Error('katex'));
+      document.head.append(s);
+    });
+    katexP.catch(() => {});
+  }
+  return katexP;
+}
+/* Показує формулу; без мережі лишається сирий код LaTeX */
+function texInto(el, src) {
+  el.textContent = src;
+  loadKatex().then((k) => { try { k.render(src, el, { throwOnError: false }); } catch (e) { /* лишаємо текст */ } }, () => {});
+}
+
+/* Екранування для запису у формат: звичайний текст, вміст latex/code */
+function vEsc(s, inTag) {
+  let o = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '[' || (inTag && (c === '(' || c === ')'))) o += '\\' + c;
+    else if (c === '\\' && (i === s.length - 1 || '[]()\\'.indexOf(s[i + 1]) >= 0)) o += '\\\\';
+    else o += c;
+  }
+  return o;
+}
+function rawEsc(s) {
+  let d = 0, ok = true;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\') { i++; continue; }
+    if (c === '(') d++;
+    else if (c === ')') { if (!d) { ok = false; break; } d--; }
+  }
+  if (ok && d === 0) return s;
+  return s.replace(/\\\\|[()]/g, (m) => (m === '\\\\' ? m : '\\' + m));
+}
+
+/* ---- Візуальний редактор: розмітка <-> DOM ---- */
+function vContrast(hex) {
+  let x = hex.slice(1);
+  if (x.length <= 4) x = x.split('').map((c) => c + c).join('');
+  const n = [0, 2, 4].map((k) => parseInt(x.slice(k, k + 2), 16));
+  return (n[0] * 299 + n[1] * 587 + n[2] * 114) / 1000 > 150 ? '#000' : '#fff';
+}
+function vSpan(t) {
+  const nm = t.name;
+  const e = document.createElement(nm === 'superscript' ? 'sup' : nm === 'subscript' ? 'sub' : 'span');
+  e.dataset.t = nm;
+  if (t.arg) e.dataset.a = t.arg;
+  const cls = { bold: 'fmt-b', italic: 'fmt-i', underlined: 'fmt-u', strikethrough: 'fmt-s', fill: 'fmt-fill', link: 'fmt-link', upsidedown: 'rt-flip' }[nm];
+  if (cls) e.className = cls;
+  if (nm === 'color') e.style.color = t.light || t.dark || t.arg;
+  if (nm === 'fill') { e.style.backgroundColor = t.arg; if (t.arg[0] === '#') e.style.color = vContrast(t.arg); }
+  if (nm === 'size') e.style.fontSize = t.arg;
+  return e;
+}
+function vAtom(name, raw, lang) {
+  const e = document.createElement('span');
+  e.className = 'rt-atom'; e.contentEditable = 'false';
+  e.dataset.t = name; e.dataset.raw = raw;
+  if (lang) e.dataset.a = lang;
+  const changed = () => e.dispatchEvent(new Event('rt-change', { bubbles: true }));
+  if (name === 'latex') {
+    texInto(e, raw);
+    e.title = 'Клік — редагувати формулу';
+    e.onclick = () => latexDialog(e.dataset.raw, (src) => { e.dataset.raw = src; texInto(e, src); changed(); });
+  } else {
+    e.textContent = raw;
+    e.title = 'Клік — редагувати код';
+    e.onclick = () => { const v = prompt('Код (в один рядок):', e.dataset.raw); if (v !== null) { e.dataset.raw = v; e.textContent = v; changed(); } };
+  }
+  return e;
+}
+function vDom(nodes) {
+  const f = document.createDocumentFragment();
+  nodes.forEach((n) => {
+    if (n.text !== undefined) {
+      n.text.split('\n').forEach((t, i) => { if (i) f.append(document.createElement('br')); if (t) f.append(t); });
+      return;
+    }
+    let host = f;
+    n.tags.filter((t) => !FMT_RAW[t.name]).forEach((t) => { const s = vSpan(t); host.append(s); host = s; });
+    const rt = n.tags.find((t) => FMT_RAW[t.name]);
+    if (rt) host.append(vAtom(rt.name, n.raw, rt.arg));
+    else host.append(vDom(n.kids));
+  });
+  return f;
+}
+function vSer(root, inTag) {
+  let out = '';
+  root.childNodes.forEach((c) => {
+    if (c.nodeType === 3) out += vEsc(c.nodeValue, inTag);
+    else if (c.nodeName === 'BR') out += '\n';
+    else if (c.nodeType === 1) out += c.dataset.t ? vTag(c) : vSer(c, inTag);
+  });
+  return out;
+}
+/* Ланцюжок вкладених стилів без тексту між ними записується як [a][b](...) */
+function vTag(el) {
+  let heads = '', cur = el;
+  for (;;) {
+    const a = cur.dataset.a;
+    heads += '[' + cur.dataset.t + (a ? (cur.dataset.t === 'code' ? ' "' + a + '"' : ' ' + a) : '') + ']';
+    if (cur.dataset.raw !== undefined) return heads + '(' + rawEsc(cur.dataset.raw) + ')';
+    const kids = [...cur.childNodes].filter((n) => !(n.nodeType === 3 && n.nodeValue === ''));
+    if (kids.length === 1 && kids[0].nodeType === 1 && kids[0].dataset.t) { cur = kids[0]; continue; }
+    const inner = vSer(cur, true);
+    return inner ? heads + '(' + inner + ')' : '';
+  }
+}
+
+/* ---- Панель кнопок (як у Word) ---- */
+function fmtBar(act) {
+  const bar = h('div', { class: 'rt-bar' });
+  const md = (e) => e.preventDefault();
+  [['bold', 'B', 'Жирний (Ctrl+B)'], ['italic', 'I', 'Курсив (Ctrl+I)'], ['underlined', 'U', 'Підкреслення (Ctrl+U)'], ['strikethrough', 'S', 'Закреслення'],
+    ['superscript', 'x²', 'Верхній індекс'], ['subscript', 'x₂', 'Нижній індекс'], ['upsidedown', '⇅', 'Догори дриґом']]
+    .forEach(([n, l, t]) => bar.append(h('button', { type: 'button', class: 'secondary icon', text: l, title: t, onmousedown: md, onclick: () => act(n) })));
+  const col = h('input', { type: 'color', value: '#dc2626', title: 'Колір тексту', onchange: () => act('color', col.value) });
+  const fil = h('input', { type: 'color', value: '#fde047', title: 'Заливка', onchange: () => act('fill', fil.value) });
+  const size = h('select', { title: 'Розмір тексту', onchange: () => { if (size.value) act('size', size.value); size.value = ''; } },
+    h('option', { value: '', text: 'Розмір' }), [12, 14, 18, 24, 32, 48].map((n) => h('option', { value: n, text: n })));
+  bar.append(col, fil, size,
+    h('button', { type: 'button', class: 'secondary icon', text: '🔗', title: 'Посилання', onmousedown: md, onclick: () => { const u = prompt('Адреса (https://…)'); if (u) act('link', u.trim()); } }),
+    h('button', { type: 'button', class: 'secondary icon', text: '</>', title: 'Код', onmousedown: md, onclick: () => act('code') }),
+    h('button', { type: 'button', class: 'secondary icon', text: 'Σ', title: 'Формула LaTeX', onmousedown: md, onclick: () => act('latex') }),
+    h('button', { type: 'button', class: 'secondary icon', text: 'Tx', title: 'Скинути форматування (виділеного або всього поля)', onmousedown: md, onclick: () => act('reset') }));
+  return bar;
+}
+/* Режим «Візуально»: стилі застосовуються до виділення прямо в тексті.
+   Перед дією виділення «вирізається» на рівень редактора: обгортки навколо нього розрізаються, тож зняти чи змінити стиль
+   можна для будь-якої частини тексту, а однакові стилі ніколи не вкладаються один в одного. */
+const vUnwrap = (e) => e.replaceWith(...e.childNodes);
+const vSameTag = (a, b) => a.dataset.t === b.dataset.t && (a.dataset.a || '') === (b.dataset.a || '');
+function vLift(ed, m) {
+  while (m.parentNode !== ed) {
+    const p = m.parentNode, after = p.cloneNode(false);
+    while (m.nextSibling) after.append(m.nextSibling);
+    p.after(m);
+    m.after(after);
+    if (!p.firstChild) p.remove();
+    if (!after.firstChild) after.remove();
+  }
+}
+const vBetween = (a, b) => { const o = []; for (let n = a.nextSibling; n && n !== b; n = n.nextSibling) o.push(n); return o; };
+function vLeaves(nodes) {
+  const out = [];
+  const go = (n) => {
+    if (n.nodeType === 3) { if (n.nodeValue) out.push(n); }
+    else if (n.nodeType === 1) { if (n.dataset.raw !== undefined) out.push(n); else n.childNodes.forEach(go); }
+  };
+  nodes.forEach(go);
+  return out;
+}
+const vHasTag = (leaf, name, ed) => {
+  const e = leaf.parentElement && leaf.parentElement.closest('[data-t="' + name + '"]:not([data-raw])');
+  return !!e && ed.contains(e);
+};
+function vStrip(nodes, name) {
+  nodes.forEach((n) => {
+    if (n.nodeType !== 1) return;
+    [...n.querySelectorAll('[data-t="' + name + '"]:not([data-raw])')].forEach(vUnwrap);
+    if (n.dataset.t === name && n.dataset.raw === undefined) vUnwrap(n);
+  });
+}
+/* Той самий текст без жодних стилів (формули й код стають звичайним текстом) */
+function vPlainFrag(nodes) {
+  const f = document.createDocumentFragment();
+  const text = (s) => s.split('\n').forEach((t, i) => { if (i) f.append(document.createElement('br')); if (t) f.append(t); });
+  const go = (n) => {
+    if (n.nodeType === 3) text(n.nodeValue);
+    else if (n.nodeName === 'BR') f.append(document.createElement('br'));
+    else if (n.dataset && n.dataset.raw !== undefined) text(n.dataset.raw);
+    else n.childNodes.forEach(go);
+  };
+  nodes.forEach(go);
+  return f;
+}
+/* Прибирає порожні й зайві обгортки: однакові стилі поруч зливаються, однакові вкладені розгортаються */
+function tidy(ed) {
+  const spans = () => [...ed.querySelectorAll('[data-t]:not([data-raw])')];
+  ed.normalize();
+  spans().forEach((e) => { if (!e.textContent && !e.querySelector('br,[data-raw]')) e.remove(); });
+  spans().forEach((e) => {
+    for (let p = e.parentElement; p && p !== ed; p = p.parentElement) {
+      if (p.dataset.t && vSameTag(p, e)) { vUnwrap(e); break; }
+    }
+  });
+  for (let changed = true; changed;) {
+    changed = false;
+    ed.normalize();
+    [ed, ...spans()].forEach((c) => {
+      for (let n = c.firstChild; n;) {
+        const nx = n.nextSibling;
+        if (nx && n.nodeType === 1 && nx.nodeType === 1 && n.dataset.t && n.dataset.raw === undefined && nx.dataset.raw === undefined && vSameTag(n, nx)) {
+          n.append(...nx.childNodes); nx.remove(); changed = true;
+        } else n = nx;
+      }
+    });
+  }
+  ed.normalize();
+}
+function visualAct(ed, sync) {
+  let saved = null;
+  const keep = () => { const s = getSelection(); if (s.rangeCount && ed.contains(s.getRangeAt(0).commonAncestorContainer)) saved = s.getRangeAt(0).cloneRange(); };
+  ['keyup', 'mouseup', 'blur', 'input'].forEach((ev) => ed.addEventListener(ev, keep));
+  const restore = () => { const s = getSelection(); ed.focus(); if (saved) { s.removeAllRanges(); s.addRange(saved); } return s.rangeCount ? s.getRangeAt(0) : null; };
+  const place = (node, r) => { r.deleteContents(); r.insertNode(node); r.setStartAfter(node); r.collapse(true); saved = r.cloneRange(); tidy(ed); sync(); };
+  /* Виконує fn(початковий маркер, кінцевий маркер) над виділенням, яке вже лежить на рівні редактора */
+  const onSel = (r, fn) => {
+    const mS = document.createElement('i'), mE = document.createElement('i');
+    const r1 = r.cloneRange(); r1.collapse(false); r1.insertNode(mE);
+    const r0 = r.cloneRange(); r0.collapse(true); r0.insertNode(mS);
+    vLift(ed, mE); vLift(ed, mS);
+    fn(mS, mE);
+    const nr = document.createRange();
+    nr.setStartAfter(mS); nr.setEndBefore(mE);
+    mS.remove(); mE.remove();
+    tidy(ed);
+    const s = getSelection(); s.removeAllRanges(); s.addRange(nr);
+    saved = nr.cloneRange();
+    sync();
+  };
+  return (name, arg) => {
+    const r = restore();
+    if (!r || !ed.contains(r.commonAncestorContainer)) return toast('Спершу клацніть у поле тексту', true);
+    if (name === 'latex') return latexDialog('', (src) => { const rr = restore(); if (rr) place(vAtom('latex', src), rr); });
+    if (name === 'code') {
+      const v = prompt('Код (в один рядок):', r.toString());
+      if (v === null) return;
+      const l = prompt('Мова (python, javascript…), можна лишити порожньою:', '');
+      if (l === null) return;
+      return place(vAtom('code', v, (l || '').trim().toLowerCase()), r);
+    }
+    if (name === 'reset') {
+      if (r.collapsed) {
+        if (!confirm('Скинути все форматування в цьому полі?')) return;
+        ed.replaceChildren(vPlainFrag([...ed.childNodes]));
+        tidy(ed); sync();
+        return;
+      }
+      return onSel(r, (mS, mE) => { const sel = vBetween(mS, mE); const f = vPlainFrag(sel); sel.forEach((n) => n.remove()); mS.after(f); });
+    }
+    const t = fmtMakeTag(name, arg || '');
+    if (!t) return toast('Неправильне значення стилю', true);
+    if (r.collapsed) return toast('Виділіть текст', true);
+    onSel(r, (mS, mE) => {
+      const sel = vBetween(mS, mE);
+      const lv = vLeaves(sel);
+      if (!lv.length) return;
+      const covered = !arg && lv.every((l) => vHasTag(l, name, ed));
+      vStrip(sel, name);
+      if (covered) return;
+      const w = vSpan(t);
+      mS.after(w);
+      vBetween(w, mE).forEach((n) => w.append(n));
+    });
+  };
+}
+function visualField(obj, prop, o) {
+  const ed = h('div', { class: 'rt-ed', contenteditable: 'true', 'data-f': o.f, 'data-ph': o.ph || '', spellcheck: 'true' });
+  ed.style.minHeight = ((o.rows || 1) * 1.45 + 1) + 'em';
+  ed.append(vDom(fmtParse(obj[prop])));
+  tidy(ed);
+  const sync = () => {
+    let s = vSer(ed, false);
+    if (ed.lastChild && ed.lastChild.nodeName === 'BR') s = s.slice(0, -1);
+    obj[prop] = s; touch();
+  };
+  const act = visualAct(ed, sync);
+  ed.addEventListener('input', sync);
+  ed.addEventListener('rt-change', sync);
+  ed.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); return; }
+    const k = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && (k === 'b' || k === 'i' || k === 'u')) { e.preventDefault(); act({ b: 'bold', i: 'italic', u: 'underlined' }[k]); }
+  });
+  ed.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const txt = (e.clipboardData || window.clipboardData).getData('text/plain');
+    txt.split(/\r?\n/).forEach((ln, i) => { if (i) document.execCommand('insertLineBreak'); if (ln) document.execCommand('insertText', false, ln); });
+  });
+  ed.addEventListener('drop', (e) => e.preventDefault());
+  return { ed, act };
+}
+
+/* Поле тексту: звичайне або з форматуванням (розмітка / візуально) залежно від q.format */
+function field(q, obj, prop, o) {
+  const plain = () => {
+    const ta = h('textarea', { rows: o.rows || 1, value: obj[prop], placeholder: o.ph, 'data-f': o.f, oninput: () => { obj[prop] = ta.value; autogrow(ta); touch(); } });
+    return ta;
+  };
+  if (!q.format || S.fmtMode === 'markup') { const ta = plain(); if (o.change) ta.onchange = o.change; return ta; }
+  const wrap = h('div', { class: 'rt' });
+  const v = visualField(obj, prop, o);
+  wrap.append(fmtBar(v.act), v.ed);
+  wrap.addEventListener('focusout', (e) => { if (o.change && !wrap.contains(e.relatedTarget)) o.change(); });
+  return wrap;
+}
+
+/* ---- Редактор формул LaTeX ---- */
+const TEX_GREEK = 'alpha α,beta β,gamma γ,delta δ,epsilon ε,theta θ,lambda λ,mu μ,pi π,rho ρ,sigma σ,phi φ,omega ω,Gamma Γ,Delta Δ,Theta Θ,Lambda Λ,Pi Π,Sigma Σ,Phi Φ,Omega Ω'
+  .split(',').map((s) => { const [n, g] = s.split(' '); return [g, '\\' + n + ' ']; });
+const TEX = {
+  'Структури': [['a/b', '\\frac{|}{}'], ['√', '\\sqrt{|}'], ['ⁿ√', '\\sqrt[n]{|}'], ['xⁿ', '^{|}'], ['xₙ', '_{|}'], ['Σ', '\\sum_{i=1}^{n} |'],
+    ['∫', '\\int_{a}^{b} | \\,dx'], ['lim', '\\lim_{x \\to \\infty} |'], ['( )', '\\left( | \\right)'], ['|x|', '\\left| | \\right|'], ['x̄', '\\overline{|}'],
+    ['x⃗', '\\vec{|}'], ['C(n,k)', '\\binom{|}{}'], ['матриця', '\\begin{pmatrix} | & \\\\ & \\end{pmatrix}'], ['система', '\\begin{cases} | & \\\\ & \\end{cases}']],
+  'Грецькі': TEX_GREEK,
+  'Символи': [['±', '\\pm '], ['×', '\\times '], ['÷', '\\div '], ['·', '\\cdot '], ['≤', '\\le '], ['≥', '\\ge '], ['≠', '\\ne '], ['≈', '\\approx '], ['∞', '\\infty '],
+    ['∈', '\\in '], ['⊂', '\\subset '], ['∪', '\\cup '], ['∩', '\\cap '], ['→', '\\to '], ['⇒', '\\Rightarrow '], ['⇔', '\\Leftrightarrow '], ['∀', '\\forall '], ['∃', '\\exists '], ['°', '^{\\circ}'], ['∂', '\\partial ']],
+  'Функції': [['sin', '\\sin '], ['cos', '\\cos '], ['tan', '\\tan '], ['ln', '\\ln '], ['log', '\\log_{|} ']]
+};
+function latexDialog(init, onSave) {
+  const ov = h('div', { class: 'tex-ov' });
+  const ta = h('textarea', { rows: 4, value: init, placeholder: 'Код LaTeX, наприклад \\frac{a}{b}', spellcheck: 'false' });
+  const pv = h('div', { class: 'tex-pv' });
+  const upd = () => { pv.textContent = ''; if (ta.value.trim()) texInto(pv, ta.value); };
+  ta.oninput = upd;
+  const ins = (snip) => {
+    const s = ta.selectionStart, e = ta.selectionEnd, sel = ta.value.slice(s, e), k = snip.indexOf('|');
+    ta.setRangeText(k < 0 ? snip : snip.slice(0, k) + sel + snip.slice(k + 1), s, e, 'end');
+    if (k >= 0) { const p = s + k + sel.length; ta.setSelectionRange(p, p); }
+    ta.focus(); upd();
+  };
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc); };
+  const esc = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', esc);
+  const box = h('div', { class: 'tex-box' }, h('h3', { text: 'Редактор формули' }));
+  Object.entries(TEX).forEach(([name, list]) => box.append(h('div', { class: 'tex-grp' }, h('b', { text: name }),
+    list.map(([lbl, snip]) => h('button', { type: 'button', class: 'secondary tex-b', text: lbl, title: snip.replace('|', ''), onmousedown: (e) => e.preventDefault(), onclick: () => ins(snip) })))));
+  box.append(ta, h('div', { class: 'muted', text: 'Попередній перегляд (потрібен інтернет для KaTeX):' }), pv,
+    h('div', { class: 'tex-act' },
+      h('button', { text: 'Вставити', onclick: () => { const v = ta.value.trim(); if (v) { onSave(v); close(); } } }),
+      h('button', { class: 'secondary', text: 'Скасувати', onclick: close })));
+  ov.append(box);
+  ov.addEventListener('mousedown', (e) => { if (e.target === ov) close(); });
+  document.body.append(ov);
+  ta.focus(); upd();
+}
+
+/* Текст питання у списку зліва: з форматуванням в один рядок */
+let katexAsked = false;
+function askKatex() {
+  if (katexAsked) return;
+  katexAsked = true;
+  loadKatex().then(() => renderSidebar(), () => {});
+}
+function fmtLine(text) {
+  const f = document.createDocumentFragment();
+  const go = (nodes, host) => nodes.forEach((n) => {
+    if (n.text !== undefined) { host.append(n.text.replace(/\s*\n\s*/g, ' ')); return; }
+    let hh = host;
+    n.tags.filter((t) => !FMT_RAW[t.name]).forEach((t) => { const s = vSpan(t); hh.append(s); hh = s; });
+    if (n.raw === undefined) { go(n.kids, hh); return; }
+    const rt = n.tags.find((t) => FMT_RAW[t.name]);
+    const e = document.createElement('span');
+    e.className = 'rt-atom';
+    if (rt.name === 'latex' && window.katex) { try { window.katex.render(n.raw, e, { throwOnError: false }); } catch (x) { e.textContent = n.raw; } }
+    else { e.textContent = n.raw.replace(/\s*\n\s*/g, ' '); if (rt.name === 'latex') askKatex(); }
+    hh.append(e);
+  });
+  go(fmtParse(text), f);
+  return f;
+}
+const qPlain = (q) => (q.format ? fmtPlain(q.question) : q.question);
+
 /* ---------- Редактор ---------- */
 let pendingFocus = null;
 function rerender(focus) { pendingFocus = focus || null; renderEditor(); }
@@ -863,8 +1392,14 @@ function renderEditor() {
       h('datalist', { id: 'topics' }, topics.map((t) => h('option', { value: t }))))));
 
   /* Текст питання */
-  const qt = h('textarea', { rows: 2, value: q.question, placeholder: 'Текст питання', 'data-f': 'question', oninput: () => { q.question = qt.value; autogrow(qt); touch(); } });
-  box.append(h('label', { class: 'f' }, h('span', { class: 'lbl', text: 'Питання' }), qt));
+  const fc = h('input', { type: 'checkbox', checked: q.format, onchange: () => { q.format = fc.checked; touch(); renderEditor(); } });
+  const modeBtn = (m, label) => h('button', { type: 'button', class: 'secondary small' + ((S.fmtMode === 'markup') === (m === 'markup') ? ' on' : ''), text: label, onclick: () => { S.fmtMode = m; scheduleSave(); renderEditor(); } });
+  box.append(h('div', { class: 'fmt-row' },
+    h('label', {}, fc, ' Використовувати форматування'),
+    q.format ? h('span', { class: 'seg' }, modeBtn('visual', 'Візуально'), modeBtn('markup', 'Розмітка')) : null,
+    q.format ? h('span', { class: 'muted', text: 'Діє в питанні, варіантах і поясненні. Синтаксис: [bold](текст)' }) : null));
+  const qt = field(q, q, 'question', { rows: 2, ph: 'Текст питання', f: 'question' });
+  box.append(h('div', { class: 'f' }, h('span', { class: 'lbl', text: 'Питання' }), qt));
 
   box.append(renderImages(q));
   box.append(renderAnswers(q));
@@ -929,8 +1464,7 @@ function optRow(q, list, idx, o) {
     k.onchange = () => { const from = it.key; it.key = k.value.trim(); renameKey(q, list, from, it.key); touch(); rerender(); };
     row.append(k);
   }
-  const ta = h('textarea', { rows: 1, value: it.text, placeholder: 'Текст', 'data-f': `${list}-${idx}`, oninput: () => { it.text = ta.value; autogrow(ta); touch(); } });
-  if (o.textChange) ta.onchange = o.textChange;
+  const ta = field(q, it, 'text', { rows: 1, ph: 'Текст', f: `${list}-${idx}`, change: o.textChange });
   row.append(ta);
   if (o.extra) row.append(o.extra);
   const min = list === 'choices' && q.type === 'ordering' ? 2 : 1;
@@ -1035,7 +1569,7 @@ function renderExplanation(q) {
     return sec;
   }
   head.append(h('button', { class: 'danger small', text: 'Видалити пояснення', onclick: () => { q.explanation = ''; q.explOpen = false; touch(); rerender(); } }));
-  const ta = h('textarea', { rows: 3, value: q.explanation, placeholder: 'Чому правильна саме така відповідь', 'data-f': 'explanation', oninput: () => { q.explanation = ta.value; autogrow(ta); touch(); } });
+  const ta = field(q, q, 'explanation', { rows: 3, ph: 'Чому правильна саме така відповідь', f: 'explanation' });
   sec.append(head, ta);
   return sec;
 }

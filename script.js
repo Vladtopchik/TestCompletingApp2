@@ -255,6 +255,303 @@ const saText = (a) => {
   return (typeof a === 'string' || typeof a === 'number') && String(a).trim() !== '' ? String(a).trim() : NONE;
 };
 
+/* ---------- Форматування тексту: поле "format": true ----------
+   Синтаксис: [стиль](текст). Кілька стилів підряд: [bold][italic](текст). Екранування: \[ \] \( \) \\
+   Стилі: bold, italic, underlined, strikethrough, superscript, subscript, upsidedown, latex, code "мова",
+          color #rrggbb, fill #rrggbb, size 24, link https://...
+   Помилки в розмітці ніколи не ламають питання: те, що не вдалося розібрати, показується як звичайний текст. */
+/* ===FMT-START=== */
+const FMT_MAX_DEPTH = 12;
+const FMT_ESC = '[]()\\';
+const FMT_SIMPLE = { bold: 1, italic: 1, underlined: 1, strikethrough: 1, superscript: 1, subscript: 1, upsidedown: 1, latex: 1 };
+const FMT_RAW = { latex: 1, code: 1 };
+
+function fmtColorOk(v) {
+  if (/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) return true;
+  return /^[a-z]{3,20}$/i.test(v) && typeof CSS !== 'undefined' && !!CSS.supports && CSS.supports('color', v);
+}
+/* Розмір: число (пікселі), або число з px / % / em. Занадто великі й малі значення обрізаються */
+function fmtSize(v) {
+  const m = /^(\d+(?:\.\d+)?)(px|%|em)?$/i.exec(v);
+  if (!m) return null;
+  const unit = (m[2] || 'px').toLowerCase();
+  const lim = { px: [6, 120], '%': [25, 500], em: [0.4, 6] }[unit];
+  return Math.min(lim[1], Math.max(lim[0], Number(m[1]))) + unit;
+}
+/* Колір тексту: або один колір (#000000), або варіанти для тем: dark:#000,light:#fff. Якщо варіанта для теми немає,
+   у цій темі лишається звичайний колір тексту. */
+function fmtColorSpec(arg) {
+  if (fmtColorOk(arg)) return { arg };
+  if (!/^(dark|light)\s*:/i.test(arg)) return null;
+  const spec = {};
+  for (const part of arg.split(',')) {
+    const m = /^\s*(dark|light)\s*:\s*(\S+)\s*$/i.exec(part);
+    if (!m) return null;
+    const k = m[1].toLowerCase();
+    if (spec[k] || !fmtColorOk(m[2])) return null;
+    spec[k] = m[2];
+  }
+  spec.arg = ['light', 'dark'].filter((k) => spec[k]).map((k) => k + ':' + spec[k]).join(',');
+  return spec;
+}
+/* Тег із назви й аргументу або null, якщо тег невідомий чи аргумент неправильний */
+function fmtMakeTag(name, arg) {
+  if (FMT_SIMPLE[name] === 1) return arg === '' ? { name } : null;
+  if (name === 'color') { const s = fmtColorSpec(arg); return s ? { name, ...s } : null; }
+  if (name === 'fill') return fmtColorOk(arg) ? { name, arg } : null;
+  if (name === 'link') return /^(https?:\/\/|mailto:)\S+$/i.test(arg) ? { name, arg } : null;
+  if (name === 'size') { const s = fmtSize(arg); return s ? { name, arg: s } : null; }
+  if (name === 'code') {
+    const m = /^(?:"([^"]{0,30})"|([\w+#.-]{1,30}))?$/.exec(arg);
+    return m ? { name, arg: (m[1] || m[2] || '').toLowerCase() } : null;
+  }
+  return null;
+}
+/* Група тегів: [a][b arg](  — повертає { tags, open } (open — позиція "(") або null */
+function fmtReadGroup(s, i) {
+  const tags = [];
+  let p = i;
+  while (s[p] === '[') {
+    const j = s.indexOf(']', p + 1);
+    if (j < 0) return null;
+    const inner = s.slice(p + 1, j);
+    if (inner.indexOf('[') >= 0) return null;
+    const m = /^\s*([a-z]+)(?:\s+([\s\S]*?))?\s*$/.exec(inner);
+    if (!m) return null;
+    const tag = fmtMakeTag(m[1], m[2] === undefined ? '' : m[2]);
+    if (!tag) return null;
+    tags.push(tag);
+    p = j + 1;
+  }
+  return tags.length && s[p] === '(' ? { tags, open: p } : null;
+}
+/* Закриваюча ")" з урахуванням вкладених дужок і екранування */
+function fmtFindClose(s, from) {
+  let depth = 0;
+  for (let i = from; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\') { i++; continue; }
+    if (c === '(') depth++;
+    else if (c === ')') { if (depth === 0) return i; depth--; }
+  }
+  return -1;
+}
+/* У latex і code вміст береться як є: знімаємо лише \( і \), а \\ лишається подвійним (потрібно для матриць) */
+function fmtUnescRaw(s) {
+  let o = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === '\\' && i + 1 < s.length) {
+      const n = s[i + 1];
+      if (n === '(' || n === ')') { o += n; i++; continue; }
+      if (n === '\\') { o += '\\\\'; i++; continue; }
+    }
+    o += c;
+  }
+  return o;
+}
+/* Розбір у дерево: { text } | { tags, kids } | { tags, raw } */
+function fmtParse(s, depth = 0) {
+  const out = [];
+  let buf = '';
+  const flush = () => { if (buf) { out.push({ text: buf }); buf = ''; } };
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === '\\' && i + 1 < s.length && FMT_ESC.indexOf(s[i + 1]) >= 0) { buf += s[i + 1]; i += 2; continue; }
+    if (c === '[' && depth < FMT_MAX_DEPTH) {
+      const g = fmtReadGroup(s, i);
+      const end = g ? fmtFindClose(s, g.open + 1) : -1;
+      if (g && end >= 0) {
+        flush();
+        const inner = s.slice(g.open + 1, end);
+        out.push(g.tags.some((t) => FMT_RAW[t.name])
+          ? { tags: g.tags, raw: fmtUnescRaw(inner) }
+          : { tags: g.tags, kids: fmtParse(inner, depth + 1) });
+        i = end + 1;
+        continue;
+      }
+    }
+    buf += c;
+    i++;
+  }
+  flush();
+  return out;
+}
+/* Той самий текст без розмітки (для копіювання, списків вибору тощо) */
+function fmtText(nodes) {
+  return nodes.map((n) => (n.text !== undefined ? n.text : n.raw !== undefined ? n.raw : fmtText(n.kids))).join('');
+}
+const fmtPlain = (s) => fmtText(fmtParse(String(s)));
+
+/* ---- Показ ---- */
+/* Колір тексту на кольоровій заливці: чорний або білий залежно від яскравості (лише для hex-кольорів) */
+function fmtContrast(hex) {
+  let h = hex.slice(1);
+  if (h.length <= 4) h = h.split('').map((x) => x + x).join('');
+  const n = [0, 2, 4].map((k) => parseInt(h.slice(k, k + 2), 16));
+  return (n[0] * 299 + n[1] * 587 + n[2] * 114) / 1000 > 150 ? '#000' : '#fff';
+}
+function fmtWrapEl(t) {
+  let e;
+  switch (t.name) {
+    case 'bold': e = el('span', 'fmt-b'); break;
+    case 'italic': e = el('span', 'fmt-i'); break;
+    case 'underlined': e = el('span', 'fmt-u'); break;
+    case 'strikethrough': e = el('span', 'fmt-s'); break;
+    case 'superscript': e = document.createElement('sup'); break;
+    case 'subscript': e = document.createElement('sub'); break;
+    case 'upsidedown': e = el('span', 'fmt-flip'); break;
+    case 'color':
+      e = el('span');
+      if (t.light || t.dark) {
+        e.className = 'fmt-c';
+        if (t.light) e.style.setProperty('--c-light', t.light);
+        if (t.dark) e.style.setProperty('--c-dark', t.dark);
+      } else e.style.color = t.arg;
+      break;
+    case 'fill':
+      e = el('span', 'fmt-fill');
+      e.style.backgroundColor = t.arg;
+      if (t.arg[0] === '#') e.style.color = fmtContrast(t.arg);
+      break;
+    case 'size': e = el('span'); e.style.fontSize = t.arg; break;
+    case 'link':
+      e = el('a', 'fmt-link');
+      e.href = t.arg;
+      e.target = '_blank';
+      e.rel = 'noopener noreferrer';
+      /* Посилання може лежати всередині кнопки варіанта: відкриваємо вручну й не даємо кнопці спрацювати */
+      e.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        window.open(e.href, '_blank', 'noopener,noreferrer');
+      });
+      break;
+    default: e = el('span');
+  }
+  return e;
+}
+
+/* Бібліотеки для latex (KaTeX) і підсвітки коду (highlight.js) вантажаться з CDN лише тоді, коли вони справді потрібні.
+   Якщо мережі немає, latex і код лишаються звичайним моноширинним текстом. */
+const FMT_LIBS = {
+  katex: {
+    js: 'https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js',
+    css: ['https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css'],
+    ready: () => window.katex
+  },
+  hljs: {
+    js: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js',
+    css: [
+      ['https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css', '(prefers-color-scheme: light), (prefers-color-scheme: no-preference)'],
+      ['https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css', '(prefers-color-scheme: dark)']
+    ],
+    ready: () => window.hljs
+  }
+};
+const fmtLibState = {};
+function fmtLoadLib(name) {
+  const lib = FMT_LIBS[name];
+  if (lib.ready()) return Promise.resolve(lib.ready());
+  const st = fmtLibState[name] || (fmtLibState[name] = { promise: null, failedAt: 0, css: false });
+  if (st.promise) return st.promise;
+  if (Date.now() - st.failedAt < 30000) return Promise.reject(new Error('lib unavailable'));
+  if (!st.css) {
+    st.css = true;
+    lib.css.forEach((c) => {
+      const href = Array.isArray(c) ? c[0] : c;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      if (Array.isArray(c)) link.media = c[1];
+      document.head.appendChild(link);
+    });
+  }
+  st.promise = new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = lib.js;
+    sc.async = true;
+    sc.onload = () => (lib.ready() ? resolve(lib.ready()) : reject(new Error('lib missing')));
+    sc.onerror = () => { sc.remove(); reject(new Error('lib failed')); };
+    document.head.appendChild(sc);
+  });
+  st.promise.catch(() => { st.promise = null; st.failedAt = Date.now(); });
+  return st.promise;
+}
+function fmtLatexEl(src) {
+  const span = el('span', 'fmt-latex', src);
+  fmtLoadLib('katex').then((katex) => {
+    katex.render(src, span, { throwOnError: false, displayMode: false });
+    span.classList.add('fmt-latex-ok');
+  }).catch(() => {});
+  return span;
+}
+function fmtCodeEl(src, lang) {
+  const text = src.replace(/^\n+|\n+$/g, '');
+  const code = el('code', 'fmt-code', text);
+  if (lang) code.classList.add('language-' + lang);
+  if (lang) {
+    fmtLoadLib('hljs').then((hljs) => {
+      if (!hljs.getLanguage(lang)) return;
+      code.innerHTML = hljs.highlight(text, { language: lang, ignoreIllegals: true }).value;
+      code.classList.add('hljs');
+    }).catch(() => {});
+  }
+  if (text.indexOf('\n') < 0) return code;
+  const pre = el('pre', 'fmt-pre');
+  pre.appendChild(code);
+  return pre;
+}
+function fmtRender(nodes) {
+  const frag = document.createDocumentFragment();
+  nodes.forEach((n) => {
+    if (n.text !== undefined) { frag.appendChild(document.createTextNode(n.text)); return; }
+    let host = frag;
+    n.tags.filter((t) => !FMT_RAW[t.name]).forEach((t) => {
+      const w = fmtWrapEl(t);
+      host.appendChild(w);
+      host = w;
+    });
+    const latex = n.tags.find((t) => t.name === 'latex');
+    const code = n.tags.find((t) => t.name === 'code');
+    if (latex) host.appendChild(fmtLatexEl(n.raw));
+    else if (code) host.appendChild(fmtCodeEl(n.raw, code.arg));
+    else host.appendChild(fmtRender(n.kids));
+  });
+  return frag;
+}
+
+/* Питання, пояснення — завжди, коли format: true. Відповіді (варіанти, правильні відповіді, відповіді в результатах) —
+   так само, окрім short-answer: там відповідь вводить користувач, її не можна трактувати як розмітку. */
+const fmtOn = (q) => !!q && q.format === true;
+const fmtAnsOn = (q) => fmtOn(q) && q.type !== 'short-answer';
+const plainQ = (q, s) => (fmtOn(q) ? fmtPlain(s) : s);
+const plainA = (q, s) => (fmtAnsOn(q) ? fmtPlain(s) : s);
+
+/* Проходить по текстових вузлах усередині root і замінює розмітку на оформлений текст.
+   Пропускає поля вводу, списки (select), підказки й уже оформлені фрагменти. */
+const FMT_SKIP = 'select, option, textarea, input, .hint, .tag, [data-rich]';
+function richify(root, enabled) {
+  if (!root || !enabled) return;
+  const nodes = [];
+  const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  while (tw.nextNode()) nodes.push(tw.currentNode);
+  nodes.forEach((n) => {
+    const v = n.nodeValue;
+    if (v.indexOf('[') < 0 && v.indexOf('\\') < 0) return;
+    const p = n.parentElement;
+    if (!p || p.closest(FMT_SKIP)) return;
+    const parsed = fmtParse(v);
+    if (parsed.length === 1 && parsed[0].text === v) return;
+    const holder = document.createElement('span');
+    holder.setAttribute('data-rich', '');
+    holder.appendChild(fmtRender(parsed));
+    n.replaceWith(holder);
+  });
+}
+/* ===FMT-END=== */
+
 /* ---------- Обробники типів питань ----------
    Кожен тип має: validate(q) -> null | текст помилки,
    render(q, answer, container, onAnswer, rv, chk) — rv = { old, reveal } у режимі помилок, інакше null;
@@ -369,7 +666,7 @@ const handlers = {
         label.append(el('b', null, k), el('span', null, t));
         const select = document.createElement('select');
         select.add(new Option('— обрати —', ''));
-        Object.entries(q.matches).forEach(([mk, mtxt]) => select.add(new Option(`${mk}. ${mtxt}`, mk)));
+        Object.entries(q.matches).forEach(([mk, mtxt]) => select.add(new Option(`${mk}. ${plainA(q, mtxt)}`, mk)));
         select.value = has(ans, k) ? ans[k] : '';
         select.onchange = () => {
           const next = { ...ans };
@@ -787,6 +1084,8 @@ function validate(data) {
     if (!q || typeof q.question !== 'string') return `Питання ${n}: немає поля "question".`;
     if (q.topic !== undefined && q.topic !== null && typeof q.topic !== 'string')
       return `Питання ${n}: поле "topic" має бути рядком.`;
+    if (q.format !== undefined && q.format !== null && typeof q.format !== 'boolean')
+      return `Питання ${n}: "format" має бути true або false (без лапок).`;
     const imgErr = validateImages(q.images);
     if (imgErr) return `Питання ${n}: ${imgErr}`;
     q.type = TYPE_ALIASES[q.type] || q.type;
@@ -875,7 +1174,7 @@ const statsLine = (r) =>
 /* Повний звіт: бал, відсотки і всі відповіді з порядковими номерами */
 function fullReport() {
   const r = computeResults();
-  const body = r.items.map((x) => `${x.i + 1}. ${x.q.question}\n${x.line}`).join('\n\n');
+  const body = r.items.map((x) => `${x.i + 1}. ${plainQ(x.q, x.q.question)}\n${plainA(x.q, x.line)}`).join('\n\n');
   return `Результат: ${r.score} з ${r.total}\n${statsLine(r)}${timerResultText() ? '\n' + timerResultText() : ''}\n\n${body}`;
 }
 /* Короткий звіт: лише номер і ✅/❌ */
@@ -890,7 +1189,7 @@ function myAnswersReport() {
 /* Правильні відповіді на весь тест */
 function answersReport() {
   return 'Правильні відповіді:\n\n' + state.questions
-    .map((q, i) => `${i + 1}. ${q.question}\n${handlers[q.type].text(q, q.correct)}`)
+    .map((q, i) => `${i + 1}. ${plainQ(q, q.question)}\n${plainA(q, handlers[q.type].text(q, q.correct))}`)
     .join('\n\n');
 }
 
@@ -1500,6 +1799,7 @@ function renderQuiz() {
   $('done-counter').textContent = `Виконано: ${done} з ${total} (без відповіді: ${total - done})`;
   $('progress-bar').style.width = `${(pos / count) * 100}%`;
   $('question').textContent = q.question;
+  richify($('question'), fmtOn(q));
   renderImages(q);
   $('rv-legend').hidden = !review;
   $('chk-show-correct').checked = !!state.showCorrect;
@@ -1513,6 +1813,7 @@ function renderQuiz() {
     saveState();
     render();
   }, rv, !review && checked);
+  richify($('answer-area'), fmtAnsOn(q));
 
   /* Зелена плашка з правильною відповіддю (+ червона з вашою, якщо вона неправильна) */
   const hasAnswer = sig(answer) !== 'null';
@@ -1524,9 +1825,13 @@ function renderQuiz() {
   $('reveal-box').hidden = !checked;
   if (checked) {
     $('reveal-text').textContent = `Правильна відповідь:\n${h.text(q, q.correct)}`;
+    richify($('reveal-text'), fmtAnsOn(q));
     const wrongMine = hasAnswer && !h.isCorrect(q, answer);
     $('reveal-mine').hidden = !wrongMine;
-    if (wrongMine) $('reveal-mine').textContent = `Ваша відповідь:\n${h.text(q, answer)}`;
+    if (wrongMine) {
+      $('reveal-mine').textContent = `Ваша відповідь:\n${h.text(q, answer)}`;
+      richify($('reveal-mine'), fmtAnsOn(q));
+    }
   }
 
   renderPalette();
@@ -1650,6 +1955,8 @@ function renderResults() {
     const line = document.createElement('div');
     line.className = 'line ' + (x.ok ? 'ok' : 'bad');
     line.textContent = x.line;
+    richify(title, fmtOn(x.q));
+    richify(line, fmtAnsOn(x.q));
     li.append(title, line);
     list.appendChild(li);
   });
@@ -1683,6 +1990,8 @@ function renderAnswers() {
     const li = document.createElement('li');
     const title = el('div', 'q-text', q.question);
     const line = el('div', 'line ok', handlers[q.type].text(q, q.correct));
+    richify(title, fmtOn(q));
+    richify(line, fmtAnsOn(q));
     li.append(title, line);
     list.appendChild(li);
   });
@@ -1708,6 +2017,7 @@ function openExplain() {
   explShown = true;
   explainOpener = document.activeElement;
   $('explain-text').textContent = text;
+  richify($('explain-text'), fmtOn(q));
   $('explain-modal').hidden = false;
   $('btn-explain-ok').focus();
 }
@@ -2218,4 +2528,4 @@ if (!state.questions.length) {
 }
 
 /* Маркер збірки: має збігатися з версією в index.html */
-$('js-ver').textContent = '20261006d';
+$('js-ver').textContent = '20261006g';

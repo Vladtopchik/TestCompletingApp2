@@ -302,3 +302,29 @@ button.small { padding: 6px 12px; font-size: .85rem; margin-top: 6px; }
 .sa-input.rv-ok { border-color: var(--ok); background: rgba(22, 163, 74, .14); }
 .sa-input.rv-bad { border-color: var(--bad); background: rgba(220, 38, 38, .12); }
 .sa-input.rv-new { outline: 2px solid var(--change); outline-offset: 1px; }
+
+/* Форматування тексту (поле format: true) */
+.fmt-b { font-weight: 800; }
+.fmt-i { font-style: italic; }
+.fmt-u { text-decoration: underline; }
+.fmt-s { text-decoration: line-through; }
+.fmt-flip { display: inline-block; transform: rotate(180deg); }
+.fmt-fill { padding: 0 .2em; border-radius: 3px; }
+.fmt-link { color: var(--accent); text-decoration: underline; cursor: pointer; }
+.fmt-latex:not(.fmt-latex-ok) { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+code.fmt-code {
+  padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em;
+  background: rgba(127, 127, 127, .18); border-radius: 4px; white-space: pre-wrap;
+}
+pre.fmt-pre {
+  margin: 6px 0; padding: 10px 12px; overflow-x: auto;
+  background: rgba(127, 127, 127, .14); border: 1px solid var(--border); border-radius: 8px;
+}
+pre.fmt-pre code.fmt-code { display: block; padding: 0; background: transparent; white-space: pre; }
+code.fmt-code.hljs { padding: 1px 5px; background: rgba(127, 127, 127, .18); }
+pre.fmt-pre code.fmt-code.hljs { padding: 0; background: transparent; }
+.fmt-c { color: var(--c-light, inherit); }
+@media (prefers-color-scheme: dark) { .fmt-c { color: var(--c-dark, inherit); } }
+
+/* Переноси рядків (\n у JSON) у питаннях, варіантах і списках */
+#question, .choice, .q-text, .match-row { white-space: pre-line; }
