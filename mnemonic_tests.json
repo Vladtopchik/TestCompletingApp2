@@ -1,0 +1,3002 @@
+[
+  {
+    "index": 0,
+    "question": "ЗІЧЇНУТИ → число",
+    "type": "short-answer",
+    "correct": "31490716"
+  },
+  {
+    "index": 1,
+    "question": "СЇБОДИВЄ → число",
+    "type": "short-answer",
+    "correct": "79609683"
+  },
+  {
+    "index": 2,
+    "question": "323 → літери",
+    "type": "short-answer",
+    "correct": "ЗАЗ"
+  },
+  {
+    "index": 3,
+    "question": "ПАЗЮПЯТЯ → число",
+    "type": "short-answer",
+    "correct": "52385515"
+  },
+  {
+    "index": 4,
+    "question": "57501155 → літери",
+    "type": "short-answer",
+    "correct": "ПУПОТІПЯ"
+  },
+  {
+    "index": 5,
+    "question": "ПЮВЇВОНЯН → число",
+    "type": "short-answer",
+    "correct": "588980050"
+  },
+  {
+    "index": 6,
+    "question": "ЗАДАТЇПЯ → число",
+    "type": "short-answer",
+    "correct": "32921955"
+  },
+  {
+    "index": 7,
+    "question": "77 → літери",
+    "type": "short-answer",
+    "correct": "СУ"
+  },
+  {
+    "index": 8,
+    "question": "ЧЄЧ → число",
+    "type": "short-answer",
+    "correct": "434"
+  },
+  {
+    "index": 9,
+    "question": "ТУЧЮНІДУВ → число",
+    "type": "short-answer",
+    "correct": "174801978"
+  },
+  {
+    "index": 10,
+    "question": "770774 → літери",
+    "type": "short-answer",
+    "correct": "СУНУСЕ"
+  },
+  {
+    "index": 11,
+    "question": "БЇ → число",
+    "type": "short-answer",
+    "correct": "69"
+  },
+  {
+    "index": 12,
+    "question": "18 → літери",
+    "type": "short-answer",
+    "correct": "ТЮ"
+  },
+  {
+    "index": 13,
+    "question": "ТЇПАПЮ → число",
+    "type": "short-answer",
+    "correct": "195258"
+  },
+  {
+    "index": 14,
+    "question": "ТЮ → число",
+    "type": "short-answer",
+    "correct": "18"
+  },
+  {
+    "index": 15,
+    "question": "ДЄДА → число",
+    "type": "short-answer",
+    "correct": "9392"
+  },
+  {
+    "index": 16,
+    "question": "СОН → число",
+    "type": "short-answer",
+    "correct": "700"
+  },
+  {
+    "index": 17,
+    "question": "359 → літери",
+    "type": "short-answer",
+    "correct": "ЗЯД"
+  },
+  {
+    "index": 18,
+    "question": "ТАТ → число",
+    "type": "short-answer",
+    "correct": "121"
+  },
+  {
+    "index": 19,
+    "question": "ДОНЇЧЇП → число",
+    "type": "short-answer",
+    "correct": "9009495"
+  },
+  {
+    "index": 20,
+    "question": "9715 → літери",
+    "type": "short-answer",
+    "correct": "ДУТЯ"
+  },
+  {
+    "index": 21,
+    "question": "21461269 → літери",
+    "type": "short-answer",
+    "correct": "КІЧИТАБЇ"
+  },
+  {
+    "index": 22,
+    "question": "441028 → літери",
+    "type": "short-answer",
+    "correct": "ЧЕТОКЮ"
+  },
+  {
+    "index": 23,
+    "question": "ЗЯПЯ → число",
+    "type": "short-answer",
+    "correct": "3555"
+  },
+  {
+    "index": 24,
+    "question": "СЇЗЄ → число",
+    "type": "short-answer",
+    "correct": "7933"
+  },
+  {
+    "index": 25,
+    "question": "СЇКЮБЯ → число",
+    "type": "short-answer",
+    "correct": "792865"
+  },
+  {
+    "index": 26,
+    "question": "109822815 → літери",
+    "type": "short-answer",
+    "correct": "ТОДЮКАВІП"
+  },
+  {
+    "index": 27,
+    "question": "2136170 → літери",
+    "type": "short-answer",
+    "correct": "КІЗИТУН"
+  },
+  {
+    "index": 28,
+    "question": "ТУ → число",
+    "type": "short-answer",
+    "correct": "17"
+  },
+  {
+    "index": 29,
+    "question": "ЗИСАЗЯ → число",
+    "type": "short-answer",
+    "correct": "367235"
+  },
+  {
+    "index": 30,
+    "question": "3436197065 → літери",
+    "type": "short-answer",
+    "correct": "ЗЕЗИТЇСОБЯ"
+  },
+  {
+    "index": 31,
+    "question": "7025 → літери",
+    "type": "short-answer",
+    "correct": "СОКЯ"
+  },
+  {
+    "index": 32,
+    "question": "565 → літери",
+    "type": "short-answer",
+    "correct": "ПИП"
+  },
+  {
+    "index": 33,
+    "question": "352238272 → літери",
+    "type": "short-answer",
+    "correct": "ЗЯКАЗЮКУК"
+  },
+  {
+    "index": 34,
+    "question": "01 → літери",
+    "type": "short-answer",
+    "correct": "НІ"
+  },
+  {
+    "index": 35,
+    "question": "САБЄДЄДЯНЇ → число",
+    "type": "short-answer",
+    "correct": "7263939509"
+  },
+  {
+    "index": 36,
+    "question": "36476 → літери",
+    "type": "short-answer",
+    "correct": "ЗИЧУБ"
+  },
+  {
+    "index": 37,
+    "question": "ТЕТА → число",
+    "type": "short-answer",
+    "correct": "1412"
+  },
+  {
+    "index": 38,
+    "question": "БЄН → число",
+    "type": "short-answer",
+    "correct": "630"
+  },
+  {
+    "index": 39,
+    "question": "8209069 → літери",
+    "type": "short-answer",
+    "correct": "ВАНЇНИД"
+  },
+  {
+    "index": 40,
+    "question": "8527405 → літери",
+    "type": "short-answer",
+    "correct": "ВЯКУЧОП"
+  },
+  {
+    "index": 41,
+    "question": "ПЕСІ → число",
+    "type": "short-answer",
+    "correct": "5471"
+  },
+  {
+    "index": 42,
+    "question": "БЮЗЄБИ → число",
+    "type": "short-answer",
+    "correct": "683366"
+  },
+  {
+    "index": 43,
+    "question": "ДЇСЮ → число",
+    "type": "short-answer",
+    "correct": "9978"
+  },
+  {
+    "index": 44,
+    "question": "5202399521 → літери",
+    "type": "short-answer",
+    "correct": "ПАНАЗЇДЯКІ"
+  },
+  {
+    "index": 45,
+    "question": "662348023 → літери",
+    "type": "short-answer",
+    "correct": "БИКЄЧЮНАЗ"
+  },
+  {
+    "index": 46,
+    "question": "019 → літери",
+    "type": "short-answer",
+    "correct": "НІД"
+  },
+  {
+    "index": 47,
+    "question": "895723 → літери",
+    "type": "short-answer",
+    "correct": "ВЇПУКЄ"
+  },
+  {
+    "index": 48,
+    "question": "409 → літери",
+    "type": "short-answer",
+    "correct": "ЧОД"
+  },
+  {
+    "index": 49,
+    "question": "ЧИВ → число",
+    "type": "short-answer",
+    "correct": "468"
+  },
+  {
+    "index": 50,
+    "question": "7443624 → літери",
+    "type": "short-answer",
+    "correct": "СЕЧЄБАЧ"
+  },
+  {
+    "index": 51,
+    "question": "ТІВЮ → число",
+    "type": "short-answer",
+    "correct": "1188"
+  },
+  {
+    "index": 52,
+    "question": "ЧЯНЕКУДІКЇ → число",
+    "type": "short-answer",
+    "correct": "4504279129"
+  },
+  {
+    "index": 53,
+    "question": "72119 → літери",
+    "type": "short-answer",
+    "correct": "САТІД"
+  },
+  {
+    "index": 54,
+    "question": "212815 → літери",
+    "type": "short-answer",
+    "correct": "КІКЮТЯ"
+  },
+  {
+    "index": 55,
+    "question": "ВЮС → число",
+    "type": "short-answer",
+    "correct": "887"
+  },
+  {
+    "index": 56,
+    "question": "БЄЗОКЕБО → число",
+    "type": "short-answer",
+    "correct": "63302460"
+  },
+  {
+    "index": 57,
+    "question": "БИПІЗ → число",
+    "type": "short-answer",
+    "correct": "66513"
+  },
+  {
+    "index": 58,
+    "question": "ТІЧУЗЮВЮ → число",
+    "type": "short-answer",
+    "correct": "11473888"
+  },
+  {
+    "index": 59,
+    "question": "408105 → літери",
+    "type": "short-answer",
+    "correct": "ЧОВІНЯ"
+  },
+  {
+    "index": 60,
+    "question": "1774613 → літери",
+    "type": "short-answer",
+    "correct": "ТУСЕБІЗ"
+  },
+  {
+    "index": 61,
+    "question": "4318883 → літери",
+    "type": "short-answer",
+    "correct": "ЧЄТЮВЮЗ"
+  },
+  {
+    "index": 62,
+    "question": "ДЯЧЄНЕС → число",
+    "type": "short-answer",
+    "correct": "9543047"
+  },
+  {
+    "index": 63,
+    "question": "ВЮД → число",
+    "type": "short-answer",
+    "correct": "889"
+  },
+  {
+    "index": 64,
+    "question": "СЇДАБ → число",
+    "type": "short-answer",
+    "correct": "79926"
+  },
+  {
+    "index": 65,
+    "question": "ЗЮТЄВОЧ → число",
+    "type": "short-answer",
+    "correct": "3813804"
+  },
+  {
+    "index": 66,
+    "question": "376 → літери",
+    "type": "short-answer",
+    "correct": "ЗУБ"
+  },
+  {
+    "index": 67,
+    "question": "ЗЇПЕП → число",
+    "type": "short-answer",
+    "correct": "39545"
+  },
+  {
+    "index": 68,
+    "question": "16106225 → літери",
+    "type": "short-answer",
+    "correct": "ТИТОБАКЯ"
+  },
+  {
+    "index": 69,
+    "question": "933 → літери",
+    "type": "short-answer",
+    "correct": "ДЄЗ"
+  },
+  {
+    "index": 70,
+    "question": "681531 → літери",
+    "type": "short-answer",
+    "correct": "БЮТЯЗІ"
+  },
+  {
+    "index": 71,
+    "question": "ДІЗЕ → число",
+    "type": "short-answer",
+    "correct": "9134"
+  },
+  {
+    "index": 72,
+    "question": "ПІНЕЧОКЕБ → число",
+    "type": "short-answer",
+    "correct": "510440246"
+  },
+  {
+    "index": 73,
+    "question": "БЯЗИБЄП → число",
+    "type": "short-answer",
+    "correct": "6536635"
+  },
+  {
+    "index": 74,
+    "question": "БЇВОСІБЕ → число",
+    "type": "short-answer",
+    "correct": "69807164"
+  },
+  {
+    "index": 75,
+    "question": "68579414 → літери",
+    "type": "short-answer",
+    "correct": "БЮПУДЕТЕ"
+  },
+  {
+    "index": 76,
+    "question": "БЯНЯ → число",
+    "type": "short-answer",
+    "correct": "6505"
+  },
+  {
+    "index": 77,
+    "question": "51446598 → літери",
+    "type": "short-answer",
+    "correct": "ПІЧЕБЯДЮ"
+  },
+  {
+    "index": 78,
+    "question": "01433 → літери",
+    "type": "short-answer",
+    "correct": "НІЧЄЗ"
+  },
+  {
+    "index": 79,
+    "question": "ВОБІТ → число",
+    "type": "short-answer",
+    "correct": "80611"
+  },
+  {
+    "index": 80,
+    "question": "0055 → літери",
+    "type": "short-answer",
+    "correct": "НОПЯ"
+  },
+  {
+    "index": 81,
+    "question": "ДОНЄ → число",
+    "type": "short-answer",
+    "correct": "9003"
+  },
+  {
+    "index": 82,
+    "question": "СІСЄПО → число",
+    "type": "short-answer",
+    "correct": "717350"
+  },
+  {
+    "index": 83,
+    "question": "КЮКЕТОНУЗ → число",
+    "type": "short-answer",
+    "correct": "282410073"
+  },
+  {
+    "index": 84,
+    "question": "8956364424 → літери",
+    "type": "short-answer",
+    "correct": "ВЇПИЗИЧЕКЕ"
+  },
+  {
+    "index": 85,
+    "question": "ПІПИБО → число",
+    "type": "short-answer",
+    "correct": "515660"
+  },
+  {
+    "index": 86,
+    "question": "КЇНЇ → число",
+    "type": "short-answer",
+    "correct": "2909"
+  },
+  {
+    "index": 87,
+    "question": "98 → літери",
+    "type": "short-answer",
+    "correct": "ДЮ"
+  },
+  {
+    "index": 88,
+    "question": "СЮЧОПЇПИ → число",
+    "type": "short-answer",
+    "correct": "78405956"
+  },
+  {
+    "index": 89,
+    "question": "332149 → літери",
+    "type": "short-answer",
+    "correct": "ЗЄКІЧЇ"
+  },
+  {
+    "index": 90,
+    "question": "БІТЄ → число",
+    "type": "short-answer",
+    "correct": "6113"
+  },
+  {
+    "index": 91,
+    "question": "7417 → літери",
+    "type": "short-answer",
+    "correct": "СЕТУ"
+  },
+  {
+    "index": 92,
+    "question": "397365 → літери",
+    "type": "short-answer",
+    "correct": "ЗЇСЄБЯ"
+  },
+  {
+    "index": 93,
+    "question": "670593700 → літери",
+    "type": "short-answer",
+    "correct": "БУНЯДЄСОН"
+  },
+  {
+    "index": 94,
+    "question": "02 → літери",
+    "type": "short-answer",
+    "correct": "НА"
+  },
+  {
+    "index": 95,
+    "question": "ЗОСОДЇБ → число",
+    "type": "short-answer",
+    "correct": "3070996"
+  },
+  {
+    "index": 96,
+    "question": "6975 → літери",
+    "type": "short-answer",
+    "correct": "БЇСЯ"
+  },
+  {
+    "index": 97,
+    "question": "1774036 → літери",
+    "type": "short-answer",
+    "correct": "ТУСЕНЄБ"
+  },
+  {
+    "index": 98,
+    "question": "395275243 → літери",
+    "type": "short-answer",
+    "correct": "ЗЇПАСЯКЕЗ"
+  },
+  {
+    "index": 99,
+    "question": "КЄТ → число",
+    "type": "short-answer",
+    "correct": "231"
+  },
+  {
+    "index": 100,
+    "question": "2753420442 → літери",
+    "type": "short-answer",
+    "correct": "КУПЄЧАНЕЧА"
+  },
+  {
+    "index": 101,
+    "question": "8240 → літери",
+    "type": "short-answer",
+    "correct": "ВАЧО"
+  },
+  {
+    "index": 102,
+    "question": "ПАДИСЄН → число",
+    "type": "short-answer",
+    "correct": "5296730"
+  },
+  {
+    "index": 103,
+    "question": "БІБУТЮ → число",
+    "type": "short-answer",
+    "correct": "616718"
+  },
+  {
+    "index": 104,
+    "question": "8727253 → літери",
+    "type": "short-answer",
+    "correct": "ВУКУКЯЗ"
+  },
+  {
+    "index": 105,
+    "question": "ТЕКЮСЯТ → число",
+    "type": "short-answer",
+    "correct": "1428751"
+  },
+  {
+    "index": 106,
+    "question": "ПУБЯЗ → число",
+    "type": "short-answer",
+    "correct": "57653"
+  },
+  {
+    "index": 107,
+    "question": "6723 → літери",
+    "type": "short-answer",
+    "correct": "БУКЄ"
+  },
+  {
+    "index": 108,
+    "question": "ПОБЇ → число",
+    "type": "short-answer",
+    "correct": "5069"
+  },
+  {
+    "index": 109,
+    "question": "49 → літери",
+    "type": "short-answer",
+    "correct": "ЧЇ"
+  },
+  {
+    "index": 110,
+    "question": "979377 → літери",
+    "type": "short-answer",
+    "correct": "ДУДЄСУ"
+  },
+  {
+    "index": 111,
+    "question": "2111662 → літери",
+    "type": "short-answer",
+    "correct": "КІТІБИК"
+  },
+  {
+    "index": 112,
+    "question": "42722 → літери",
+    "type": "short-answer",
+    "correct": "ЧАСАК"
+  },
+  {
+    "index": 113,
+    "question": "43746 → літери",
+    "type": "short-answer",
+    "correct": "ЧЄСЕБ"
+  },
+  {
+    "index": 114,
+    "question": "ЧОДЄЗЄ → число",
+    "type": "short-answer",
+    "correct": "409333"
+  },
+  {
+    "index": 115,
+    "question": "ДІВЇЧЕВ → число",
+    "type": "short-answer",
+    "correct": "9189448"
+  },
+  {
+    "index": 116,
+    "question": "845469 → літери",
+    "type": "short-answer",
+    "correct": "ВЕПЕБЇ"
+  },
+  {
+    "index": 117,
+    "question": "БАПЯВЮВ → число",
+    "type": "short-answer",
+    "correct": "6255888"
+  },
+  {
+    "index": 118,
+    "question": "326 → літери",
+    "type": "short-answer",
+    "correct": "ЗАБ"
+  },
+  {
+    "index": 119,
+    "question": "2811 → літери",
+    "type": "short-answer",
+    "correct": "КЮТІ"
+  },
+  {
+    "index": 120,
+    "question": "СЮП → число",
+    "type": "short-answer",
+    "correct": "785"
+  },
+  {
+    "index": 121,
+    "question": "556 → літери",
+    "type": "short-answer",
+    "correct": "ПЯБ"
+  },
+  {
+    "index": 122,
+    "question": "069 → літери",
+    "type": "short-answer",
+    "correct": "НИД"
+  },
+  {
+    "index": 123,
+    "question": "ПО → число",
+    "type": "short-answer",
+    "correct": "50"
+  },
+  {
+    "index": 124,
+    "question": "КИЗ → число",
+    "type": "short-answer",
+    "correct": "263"
+  },
+  {
+    "index": 125,
+    "question": "ВЕТУ → число",
+    "type": "short-answer",
+    "correct": "8417"
+  },
+  {
+    "index": 126,
+    "question": "СУВИ → число",
+    "type": "short-answer",
+    "correct": "7786"
+  },
+  {
+    "index": 127,
+    "question": "8192 → літери",
+    "type": "short-answer",
+    "correct": "ВІДА"
+  },
+  {
+    "index": 128,
+    "question": "БЇТЕ → число",
+    "type": "short-answer",
+    "correct": "6914"
+  },
+  {
+    "index": 129,
+    "question": "БЄТЮ → число",
+    "type": "short-answer",
+    "correct": "6318"
+  },
+  {
+    "index": 130,
+    "question": "СОБІЧЄЗ → число",
+    "type": "short-answer",
+    "correct": "7061433"
+  },
+  {
+    "index": 131,
+    "question": "БЯПЄ → число",
+    "type": "short-answer",
+    "correct": "6553"
+  },
+  {
+    "index": 132,
+    "question": "ДОБ → число",
+    "type": "short-answer",
+    "correct": "906"
+  },
+  {
+    "index": 133,
+    "question": "2955052 → літери",
+    "type": "short-answer",
+    "correct": "КЇПЯНЯК"
+  },
+  {
+    "index": 134,
+    "question": "ЧЯЧІКИСІ → число",
+    "type": "short-answer",
+    "correct": "45412671"
+  },
+  {
+    "index": 135,
+    "question": "БЇЧЇВЄПО → число",
+    "type": "short-answer",
+    "correct": "69498350"
+  },
+  {
+    "index": 136,
+    "question": "502084631 → літери",
+    "type": "short-answer",
+    "correct": "ПОКОВЕБЄТ"
+  },
+  {
+    "index": 137,
+    "question": "067 → літери",
+    "type": "short-answer",
+    "correct": "НИС"
+  },
+  {
+    "index": 138,
+    "question": "ЧЮТ → число",
+    "type": "short-answer",
+    "correct": "481"
+  },
+  {
+    "index": 139,
+    "question": "ТЮЧАБ → число",
+    "type": "short-answer",
+    "correct": "18426"
+  },
+  {
+    "index": 140,
+    "question": "3618 → літери",
+    "type": "short-answer",
+    "correct": "ЗИТЮ"
+  },
+  {
+    "index": 141,
+    "question": "ПЄСУД → число",
+    "type": "short-answer",
+    "correct": "53779"
+  },
+  {
+    "index": 142,
+    "question": "ДЄ → число",
+    "type": "short-answer",
+    "correct": "93"
+  },
+  {
+    "index": 143,
+    "question": "795 → літери",
+    "type": "short-answer",
+    "correct": "СЇП"
+  },
+  {
+    "index": 144,
+    "question": "ВАТІВА → число",
+    "type": "short-answer",
+    "correct": "821182"
+  },
+  {
+    "index": 145,
+    "question": "4753 → літери",
+    "type": "short-answer",
+    "correct": "ЧУПЄ"
+  },
+  {
+    "index": 146,
+    "question": "1738113 → літери",
+    "type": "short-answer",
+    "correct": "ТУЗЮТІЗ"
+  },
+  {
+    "index": 147,
+    "question": "ТОБОС → число",
+    "type": "short-answer",
+    "correct": "10607"
+  },
+  {
+    "index": 148,
+    "question": "04870290 → літери",
+    "type": "short-answer",
+    "correct": "НЕВУНАДО"
+  },
+  {
+    "index": 149,
+    "question": "9590 → літери",
+    "type": "short-answer",
+    "correct": "ДЯДО"
+  },
+  {
+    "index": 150,
+    "question": "ЧЇПОВУ → число",
+    "type": "short-answer",
+    "correct": "495087"
+  },
+  {
+    "index": 151,
+    "question": "СОП → число",
+    "type": "short-answer",
+    "correct": "705"
+  },
+  {
+    "index": 152,
+    "question": "ТЯВИ → число",
+    "type": "short-answer",
+    "correct": "1586"
+  },
+  {
+    "index": 153,
+    "question": "71 → літери",
+    "type": "short-answer",
+    "correct": "СІ"
+  },
+  {
+    "index": 154,
+    "question": "БАЗЄ → число",
+    "type": "short-answer",
+    "correct": "6233"
+  },
+  {
+    "index": 155,
+    "question": "136170 → літери",
+    "type": "short-answer",
+    "correct": "ТЄБІСО"
+  },
+  {
+    "index": 156,
+    "question": "63675928 → літери",
+    "type": "short-answer",
+    "correct": "БЄБУПЇКЮ"
+  },
+  {
+    "index": 157,
+    "question": "ЗІЗ → число",
+    "type": "short-answer",
+    "correct": "313"
+  },
+  {
+    "index": 158,
+    "question": "52432 → літери",
+    "type": "short-answer",
+    "correct": "ПАЧЄК"
+  },
+  {
+    "index": 159,
+    "question": "ВУД → число",
+    "type": "short-answer",
+    "correct": "879"
+  },
+  {
+    "index": 160,
+    "question": "2643444 → літери",
+    "type": "short-answer",
+    "correct": "КИЧЄЧЕЧ"
+  },
+  {
+    "index": 161,
+    "question": "7631788 → літери",
+    "type": "short-answer",
+    "correct": "СИЗІСЮВ"
+  },
+  {
+    "index": 162,
+    "question": "2604 → літери",
+    "type": "short-answer",
+    "correct": "КИНЕ"
+  },
+  {
+    "index": 163,
+    "question": "016675692 → літери",
+    "type": "short-answer",
+    "correct": "НІБИСЯБЇК"
+  },
+  {
+    "index": 164,
+    "question": "504234 → літери",
+    "type": "short-answer",
+    "correct": "ПОЧАЗЕ"
+  },
+  {
+    "index": 165,
+    "question": "783891 → літери",
+    "type": "short-answer",
+    "correct": "СЮЗЮДІ"
+  },
+  {
+    "index": 166,
+    "question": "1865167 → літери",
+    "type": "short-answer",
+    "correct": "ТЮБЯТИС"
+  },
+  {
+    "index": 167,
+    "question": "ЗЕДО → число",
+    "type": "short-answer",
+    "correct": "3490"
+  },
+  {
+    "index": 168,
+    "question": "2038 → літери",
+    "type": "short-answer",
+    "correct": "КОЗЮ"
+  },
+  {
+    "index": 169,
+    "question": "ВИПИБИВОЗ → число",
+    "type": "short-answer",
+    "correct": "865666803"
+  },
+  {
+    "index": 170,
+    "question": "БЮДЇ → число",
+    "type": "short-answer",
+    "correct": "6899"
+  },
+  {
+    "index": 171,
+    "question": "СЮСУСИ → число",
+    "type": "short-answer",
+    "correct": "787776"
+  },
+  {
+    "index": 172,
+    "question": "66613 → літери",
+    "type": "short-answer",
+    "correct": "БИБІЗ"
+  },
+  {
+    "index": 173,
+    "question": "КУЗИП → число",
+    "type": "short-answer",
+    "correct": "27365"
+  },
+  {
+    "index": 174,
+    "question": "1581 → літери",
+    "type": "short-answer",
+    "correct": "ТЯВІ"
+  },
+  {
+    "index": 175,
+    "question": "3089 → літери",
+    "type": "short-answer",
+    "correct": "ЗОВЇ"
+  },
+  {
+    "index": 176,
+    "question": "ПЯВЇЧЮ → число",
+    "type": "short-answer",
+    "correct": "558948"
+  },
+  {
+    "index": 177,
+    "question": "883666713 → літери",
+    "type": "short-answer",
+    "correct": "ВЮЗИБИСІЗ"
+  },
+  {
+    "index": 178,
+    "question": "ПОСОВЇ → число",
+    "type": "short-answer",
+    "correct": "507089"
+  },
+  {
+    "index": 179,
+    "question": "ВЮТУЧІ → число",
+    "type": "short-answer",
+    "correct": "881741"
+  },
+  {
+    "index": 180,
+    "question": "70692 → літери",
+    "type": "short-answer",
+    "correct": "СОБЇК"
+  },
+  {
+    "index": 181,
+    "question": "КЮДАПЮ → число",
+    "type": "short-answer",
+    "correct": "289258"
+  },
+  {
+    "index": 182,
+    "question": "ВЯС → число",
+    "type": "short-answer",
+    "correct": "857"
+  },
+  {
+    "index": 183,
+    "question": "28204 → літери",
+    "type": "short-answer",
+    "correct": "КЮКОЧ"
+  },
+  {
+    "index": 184,
+    "question": "670150 → літери",
+    "type": "short-answer",
+    "correct": "БУНІПО"
+  },
+  {
+    "index": 185,
+    "question": "ЗИН → число",
+    "type": "short-answer",
+    "correct": "360"
+  },
+  {
+    "index": 186,
+    "question": "ТЯЗАН → число",
+    "type": "short-answer",
+    "correct": "15320"
+  },
+  {
+    "index": 187,
+    "question": "41489789 → літери",
+    "type": "short-answer",
+    "correct": "ЧІЧЮДУВЇ"
+  },
+  {
+    "index": 188,
+    "question": "ТЯ → число",
+    "type": "short-answer",
+    "correct": "15"
+  },
+  {
+    "index": 189,
+    "question": "07595769 → літери",
+    "type": "short-answer",
+    "correct": "НУПЇПУБЇ"
+  },
+  {
+    "index": 190,
+    "question": "8794 → літери",
+    "type": "short-answer",
+    "correct": "ВУДЕ"
+  },
+  {
+    "index": 191,
+    "question": "09900 → літери",
+    "type": "short-answer",
+    "correct": "НЇДОН"
+  },
+  {
+    "index": 192,
+    "question": "ЗЇБЮДА → число",
+    "type": "short-answer",
+    "correct": "396892"
+  },
+  {
+    "index": 193,
+    "question": "ПЯП → число",
+    "type": "short-answer",
+    "correct": "555"
+  },
+  {
+    "index": 194,
+    "question": "4807 → літери",
+    "type": "short-answer",
+    "correct": "ЧЮНУ"
+  },
+  {
+    "index": 195,
+    "question": "3511 → літери",
+    "type": "short-answer",
+    "correct": "ЗЯТІ"
+  },
+  {
+    "index": 196,
+    "question": "ЗЯДЯЗЮВОВІ → число",
+    "type": "short-answer",
+    "correct": "3595388081"
+  },
+  {
+    "index": 197,
+    "question": "61566 → літери",
+    "type": "short-answer",
+    "correct": "БІПИБ"
+  },
+  {
+    "index": 198,
+    "question": "СЄДЇ → число",
+    "type": "short-answer",
+    "correct": "7399"
+  },
+  {
+    "index": 199,
+    "question": "ЧИЧУТ → число",
+    "type": "short-answer",
+    "correct": "46471"
+  },
+  {
+    "index": 200,
+    "question": "2393 → літери",
+    "type": "short-answer",
+    "correct": "КЄДЄ"
+  },
+  {
+    "index": 201,
+    "question": "870 → літери",
+    "type": "short-answer",
+    "correct": "ВУН"
+  },
+  {
+    "index": 202,
+    "question": "СЇНАБЯЗОЗ → число",
+    "type": "short-answer",
+    "correct": "790265303"
+  },
+  {
+    "index": 203,
+    "question": "ВАДЇВ → число",
+    "type": "short-answer",
+    "correct": "82998"
+  },
+  {
+    "index": 204,
+    "question": "ПЮЧЯПЄН → число",
+    "type": "short-answer",
+    "correct": "5845530"
+  },
+  {
+    "index": 205,
+    "question": "325 → літери",
+    "type": "short-answer",
+    "correct": "ЗАП"
+  },
+  {
+    "index": 206,
+    "question": "ТЮНІК → число",
+    "type": "short-answer",
+    "correct": "18012"
+  },
+  {
+    "index": 207,
+    "question": "ЗУВІ → число",
+    "type": "short-answer",
+    "correct": "3781"
+  },
+  {
+    "index": 208,
+    "question": "191776 → літери",
+    "type": "short-answer",
+    "correct": "ТЇТУСИ"
+  },
+  {
+    "index": 209,
+    "question": "ВУДОДЕВ → число",
+    "type": "short-answer",
+    "correct": "8790948"
+  },
+  {
+    "index": 210,
+    "question": "КЕПОКЕБЮ → число",
+    "type": "short-answer",
+    "correct": "24502468"
+  },
+  {
+    "index": 211,
+    "question": "КІЧЯЧ → число",
+    "type": "short-answer",
+    "correct": "21454"
+  },
+  {
+    "index": 212,
+    "question": "855799 → літери",
+    "type": "short-answer",
+    "correct": "ВЯПУДЇ"
+  },
+  {
+    "index": 213,
+    "question": "31779963 → літери",
+    "type": "short-answer",
+    "correct": "ЗІСУДЇБЄ"
+  },
+  {
+    "index": 214,
+    "question": "ВУВ → число",
+    "type": "short-answer",
+    "correct": "878"
+  },
+  {
+    "index": 215,
+    "question": "7103 → літери",
+    "type": "short-answer",
+    "correct": "СІНЄ"
+  },
+  {
+    "index": 216,
+    "question": "61712 → літери",
+    "type": "short-answer",
+    "correct": "БІСІК"
+  },
+  {
+    "index": 217,
+    "question": "ВО → число",
+    "type": "short-answer",
+    "correct": "80"
+  },
+  {
+    "index": 218,
+    "question": "ВЯБЮЗЯЗА → число",
+    "type": "short-answer",
+    "correct": "85683532"
+  },
+  {
+    "index": 219,
+    "question": "ЧЄНЇН → число",
+    "type": "short-answer",
+    "correct": "43090"
+  },
+  {
+    "index": 220,
+    "question": "КЇСЯНЄЧЄ → число",
+    "type": "short-answer",
+    "correct": "29750343"
+  },
+  {
+    "index": 221,
+    "question": "84018 → літери",
+    "type": "short-answer",
+    "correct": "ВЕНІВ"
+  },
+  {
+    "index": 222,
+    "question": "8754217799 → літери",
+    "type": "short-answer",
+    "correct": "ВУПЕКІСУДЇ"
+  },
+  {
+    "index": 223,
+    "question": "ПІКІТІЧ → число",
+    "type": "short-answer",
+    "correct": "5121114"
+  },
+  {
+    "index": 224,
+    "question": "БУСЄДУН → число",
+    "type": "short-answer",
+    "correct": "6773970"
+  },
+  {
+    "index": 225,
+    "question": "081066779 → літери",
+    "type": "short-answer",
+    "correct": "НЮТОБИСУД"
+  },
+  {
+    "index": 226,
+    "question": "КЯСУДЯ → число",
+    "type": "short-answer",
+    "correct": "257795"
+  },
+  {
+    "index": 227,
+    "question": "07170 → літери",
+    "type": "short-answer",
+    "correct": "НУТУН"
+  },
+  {
+    "index": 228,
+    "question": "2329750691 → літери",
+    "type": "short-answer",
+    "correct": "КЄКЇСЯНИДІ"
+  },
+  {
+    "index": 229,
+    "question": "ТЯК → число",
+    "type": "short-answer",
+    "correct": "152"
+  },
+  {
+    "index": 230,
+    "question": "ДАДЇКУ → число",
+    "type": "short-answer",
+    "correct": "929927"
+  },
+  {
+    "index": 231,
+    "question": "461128 → літери",
+    "type": "short-answer",
+    "correct": "ЧИТІКЮ"
+  },
+  {
+    "index": 232,
+    "question": "1598915 → літери",
+    "type": "short-answer",
+    "correct": "ТЯДЮДІП"
+  },
+  {
+    "index": 233,
+    "question": "14909 → літери",
+    "type": "short-answer",
+    "correct": "ТЕДОД"
+  },
+  {
+    "index": 234,
+    "question": "56103307 → літери",
+    "type": "short-answer",
+    "correct": "ПИТОЗЄНУ"
+  },
+  {
+    "index": 235,
+    "question": "ЗЮДО → число",
+    "type": "short-answer",
+    "correct": "3890"
+  },
+  {
+    "index": 236,
+    "question": "6851 → літери",
+    "type": "short-answer",
+    "correct": "БЮПІ"
+  },
+  {
+    "index": 237,
+    "question": "СУТІКУЗ → число",
+    "type": "short-answer",
+    "correct": "7711273"
+  },
+  {
+    "index": 238,
+    "question": "31341337 → літери",
+    "type": "short-answer",
+    "correct": "ЗІЗЕТЄЗУ"
+  },
+  {
+    "index": 239,
+    "question": "ДАДІД → число",
+    "type": "short-answer",
+    "correct": "92919"
+  },
+  {
+    "index": 240,
+    "question": "201 → літери",
+    "type": "short-answer",
+    "correct": "КОТ"
+  },
+  {
+    "index": 241,
+    "question": "ВЄБУС → число",
+    "type": "short-answer",
+    "correct": "83677"
+  },
+  {
+    "index": 242,
+    "question": "011 → літери",
+    "type": "short-answer",
+    "correct": "НІТ"
+  },
+  {
+    "index": 243,
+    "question": "288584 → літери",
+    "type": "short-answer",
+    "correct": "КЮВЯВЕ"
+  },
+  {
+    "index": 244,
+    "question": "3445 → літери",
+    "type": "short-answer",
+    "correct": "ЗЕЧЯ"
+  },
+  {
+    "index": 245,
+    "question": "КІДЕД → число",
+    "type": "short-answer",
+    "correct": "21949"
+  },
+  {
+    "index": 246,
+    "question": "СУВИСІПЯ → число",
+    "type": "short-answer",
+    "correct": "77867155"
+  },
+  {
+    "index": 247,
+    "question": "ПОСІНЮ → число",
+    "type": "short-answer",
+    "correct": "507108"
+  },
+  {
+    "index": 248,
+    "question": "23370393 → літери",
+    "type": "short-answer",
+    "correct": "КЄЗУНЄДЄ"
+  },
+  {
+    "index": 249,
+    "question": "ЗЇЗЯЗОКЕБ → число",
+    "type": "short-answer",
+    "correct": "393530246"
+  },
+  {
+    "index": 250,
+    "question": "КИВУ → число",
+    "type": "short-answer",
+    "correct": "2687"
+  },
+  {
+    "index": 251,
+    "question": "70588 → літери",
+    "type": "short-answer",
+    "correct": "СОПЮВ"
+  },
+  {
+    "index": 252,
+    "question": "16764846 → літери",
+    "type": "short-answer",
+    "correct": "ТИСИЧЮЧИ"
+  },
+  {
+    "index": 253,
+    "question": "495 → літери",
+    "type": "short-answer",
+    "correct": "ЧЇП"
+  },
+  {
+    "index": 254,
+    "question": "24265205 → літери",
+    "type": "short-answer",
+    "correct": "КЕКИПАНЯ"
+  },
+  {
+    "index": 255,
+    "question": "ТЄСЄЗ → число",
+    "type": "short-answer",
+    "correct": "13733"
+  },
+  {
+    "index": 256,
+    "question": "6513 → літери",
+    "type": "short-answer",
+    "correct": "БЯТЄ"
+  },
+  {
+    "index": 257,
+    "question": "СИВАБИДО → число",
+    "type": "short-answer",
+    "correct": "76826690"
+  },
+  {
+    "index": 258,
+    "question": "420993 → літери",
+    "type": "short-answer",
+    "correct": "ЧАНЇДЄ"
+  },
+  {
+    "index": 259,
+    "question": "2484243 → літери",
+    "type": "short-answer",
+    "correct": "КЕВЕКЕЗ"
+  },
+  {
+    "index": 260,
+    "question": "ЗЯЗАСЕВ → число",
+    "type": "short-answer",
+    "correct": "3532748"
+  },
+  {
+    "index": 261,
+    "question": "594 → літери",
+    "type": "short-answer",
+    "correct": "ПЇЧ"
+  },
+  {
+    "index": 262,
+    "question": "5602 → літери",
+    "type": "short-answer",
+    "correct": "ПИНА"
+  },
+  {
+    "index": 263,
+    "question": "243 → літери",
+    "type": "short-answer",
+    "correct": "КЕЗ"
+  },
+  {
+    "index": 264,
+    "question": "36030 → літери",
+    "type": "short-answer",
+    "correct": "ЗИНЄН"
+  },
+  {
+    "index": 265,
+    "question": "173751 → літери",
+    "type": "short-answer",
+    "correct": "ТУЗУПІ"
+  },
+  {
+    "index": 266,
+    "question": "609979 → літери",
+    "type": "short-answer",
+    "correct": "БОДЇСЇ"
+  },
+  {
+    "index": 267,
+    "question": "ЧИПЇНИПО → число",
+    "type": "short-answer",
+    "correct": "46590650"
+  },
+  {
+    "index": 268,
+    "question": "43032 → літери",
+    "type": "short-answer",
+    "correct": "ЧЄНЄК"
+  },
+  {
+    "index": 269,
+    "question": "09979441 → літери",
+    "type": "short-answer",
+    "correct": "НЇДУДЕЧІ"
+  },
+  {
+    "index": 270,
+    "question": "ВОВУКУВЕК → число",
+    "type": "short-answer",
+    "correct": "808727842"
+  },
+  {
+    "index": 271,
+    "question": "71032 → літери",
+    "type": "short-answer",
+    "correct": "СІНЄК"
+  },
+  {
+    "index": 272,
+    "question": "КИКИ → число",
+    "type": "short-answer",
+    "correct": "2626"
+  },
+  {
+    "index": 273,
+    "question": "628828 → літери",
+    "type": "short-answer",
+    "correct": "БАВЮКЮ"
+  },
+  {
+    "index": 274,
+    "question": "2654214713 → літери",
+    "type": "short-answer",
+    "correct": "КИПЕКІЧУТЄ"
+  },
+  {
+    "index": 275,
+    "question": "ТЕЧЮ → число",
+    "type": "short-answer",
+    "correct": "1448"
+  },
+  {
+    "index": 276,
+    "question": "555822 → літери",
+    "type": "short-answer",
+    "correct": "ПЯПЮКА"
+  },
+  {
+    "index": 277,
+    "question": "БІТ → число",
+    "type": "short-answer",
+    "correct": "611"
+  },
+  {
+    "index": 278,
+    "question": "4640 → літери",
+    "type": "short-answer",
+    "correct": "ЧИЧО"
+  },
+  {
+    "index": 279,
+    "question": "1851 → літери",
+    "type": "short-answer",
+    "correct": "ТЮПІ"
+  },
+  {
+    "index": 280,
+    "question": "3992477133 → літери",
+    "type": "short-answer",
+    "correct": "ЗЇДАЧУСІЗЄ"
+  },
+  {
+    "index": 281,
+    "question": "ЧИЗЇ → число",
+    "type": "short-answer",
+    "correct": "4639"
+  },
+  {
+    "index": 282,
+    "question": "ПИНАСІЧ → число",
+    "type": "short-answer",
+    "correct": "5602714"
+  },
+  {
+    "index": 283,
+    "question": "СЮКЕЗЇНІ → число",
+    "type": "short-answer",
+    "correct": "78243901"
+  },
+  {
+    "index": 284,
+    "question": "472267937 → літери",
+    "type": "short-answer",
+    "correct": "ЧУКАБУДЄС"
+  },
+  {
+    "index": 285,
+    "question": "5846702 → літери",
+    "type": "short-answer",
+    "correct": "ПЮЧИСОК"
+  },
+  {
+    "index": 286,
+    "question": "КИТИС → число",
+    "type": "short-answer",
+    "correct": "26167"
+  },
+  {
+    "index": 287,
+    "question": "1722335116 → літери",
+    "type": "short-answer",
+    "correct": "ТУКАЗЄПІТИ"
+  },
+  {
+    "index": 288,
+    "question": "СЮСІНЮ → число",
+    "type": "short-answer",
+    "correct": "787108"
+  },
+  {
+    "index": 289,
+    "question": "0388968 → літери",
+    "type": "short-answer",
+    "correct": "НЄВЮДИВ"
+  },
+  {
+    "index": 290,
+    "question": "ДУПИЧИЧ → число",
+    "type": "short-answer",
+    "correct": "9756464"
+  },
+  {
+    "index": 291,
+    "question": "ТЕЧИ → число",
+    "type": "short-answer",
+    "correct": "1446"
+  },
+  {
+    "index": 292,
+    "question": "4544 → літери",
+    "type": "short-answer",
+    "correct": "ЧЯЧЕ"
+  },
+  {
+    "index": 293,
+    "question": "БІСОПЮКЮТ → число",
+    "type": "short-answer",
+    "correct": "617058281"
+  },
+  {
+    "index": 294,
+    "question": "6857 → літери",
+    "type": "short-answer",
+    "correct": "БЮПУ"
+  },
+  {
+    "index": 295,
+    "question": "214 → літери",
+    "type": "short-answer",
+    "correct": "КІЧ"
+  },
+  {
+    "index": 296,
+    "question": "ВИТОС → число",
+    "type": "short-answer",
+    "correct": "86107"
+  },
+  {
+    "index": 297,
+    "question": "СЄЗЮПОТО → число",
+    "type": "short-answer",
+    "correct": "73385010"
+  },
+  {
+    "index": 298,
+    "question": "14451 → літери",
+    "type": "short-answer",
+    "correct": "ТЕЧЯТ"
+  },
+  {
+    "index": 299,
+    "question": "БУВ → число",
+    "type": "short-answer",
+    "correct": "678"
+  },
+  {
+    "index": 300,
+    "question": "БИБЄКАТ → число",
+    "type": "short-answer",
+    "correct": "6663221"
+  },
+  {
+    "index": 301,
+    "question": "487 → літери",
+    "type": "short-answer",
+    "correct": "ЧЮС"
+  },
+  {
+    "index": 302,
+    "question": "732106 → літери",
+    "type": "short-answer",
+    "correct": "СЄКІНИ"
+  },
+  {
+    "index": 303,
+    "question": "ЗЇЧУДЕ → число",
+    "type": "short-answer",
+    "correct": "394794"
+  },
+  {
+    "index": 304,
+    "question": "1764920095 → літери",
+    "type": "short-answer",
+    "correct": "ТУБЕДАНОДЯ"
+  },
+  {
+    "index": 305,
+    "question": "032743 → літери",
+    "type": "short-answer",
+    "correct": "НЄКУЧЄ"
+  },
+  {
+    "index": 306,
+    "question": "0559 → літери",
+    "type": "short-answer",
+    "correct": "НЯПЇ"
+  },
+  {
+    "index": 307,
+    "question": "939040097 → літери",
+    "type": "short-answer",
+    "correct": "ДЄДОЧОНЇС"
+  },
+  {
+    "index": 308,
+    "question": "8080 → літери",
+    "type": "short-answer",
+    "correct": "ВОВО"
+  },
+  {
+    "index": 309,
+    "question": "ТЮЗЄТУЗІЗ → число",
+    "type": "short-answer",
+    "correct": "183317313"
+  },
+  {
+    "index": 310,
+    "question": "ТОБАКЕДА → число",
+    "type": "short-answer",
+    "correct": "10622492"
+  },
+  {
+    "index": 311,
+    "question": "ВИЗИКЄДЕЗЮ → число",
+    "type": "short-answer",
+    "correct": "8636239438"
+  },
+  {
+    "index": 312,
+    "question": "357639 → літери",
+    "type": "short-answer",
+    "correct": "ЗЯСИЗЇ"
+  },
+  {
+    "index": 313,
+    "question": "ЧЇБОПУВЕД → число",
+    "type": "short-answer",
+    "correct": "496057849"
+  },
+  {
+    "index": 314,
+    "question": "9117 → літери",
+    "type": "short-answer",
+    "correct": "ДІТУ"
+  },
+  {
+    "index": 315,
+    "question": "153 → літери",
+    "type": "short-answer",
+    "correct": "ТЯЗ"
+  },
+  {
+    "index": 316,
+    "question": "620 → літери",
+    "type": "short-answer",
+    "correct": "БАН"
+  },
+  {
+    "index": 317,
+    "question": "ВЕСЮ → число",
+    "type": "short-answer",
+    "correct": "8478"
+  },
+  {
+    "index": 318,
+    "question": "339766 → літери",
+    "type": "short-answer",
+    "correct": "ЗЄДУБИ"
+  },
+  {
+    "index": 319,
+    "question": "ЧИЗЯПІ → число",
+    "type": "short-answer",
+    "correct": "463551"
+  },
+  {
+    "index": 320,
+    "question": "ВЕКЇК → число",
+    "type": "short-answer",
+    "correct": "84292"
+  },
+  {
+    "index": 321,
+    "question": "944082189 → літери",
+    "type": "short-answer",
+    "correct": "ДЕЧОВАТЮД"
+  },
+  {
+    "index": 322,
+    "question": "152338125 → літери",
+    "type": "short-answer",
+    "correct": "ТЯКЄЗЮТАП"
+  },
+  {
+    "index": 323,
+    "question": "01266797 → літери",
+    "type": "short-answer",
+    "correct": "НІКИБУДУ"
+  },
+  {
+    "index": 324,
+    "question": "СЯТЄПО → число",
+    "type": "short-answer",
+    "correct": "751350"
+  },
+  {
+    "index": 325,
+    "question": "616456 → літери",
+    "type": "short-answer",
+    "correct": "БІБЕПИ"
+  },
+  {
+    "index": 326,
+    "question": "ТЇБУВ → число",
+    "type": "short-answer",
+    "correct": "19678"
+  },
+  {
+    "index": 327,
+    "question": "ЗИНЇВЇЧ → число",
+    "type": "short-answer",
+    "correct": "3609894"
+  },
+  {
+    "index": 328,
+    "question": "ВОЧА → число",
+    "type": "short-answer",
+    "correct": "8042"
+  },
+  {
+    "index": 329,
+    "question": "ДАПЕПИ → число",
+    "type": "short-answer",
+    "correct": "925456"
+  },
+  {
+    "index": 330,
+    "question": "ВАНЮ → число",
+    "type": "short-answer",
+    "correct": "8208"
+  },
+  {
+    "index": 331,
+    "question": "ТІЧЕЧІНАП → число",
+    "type": "short-answer",
+    "correct": "114441025"
+  },
+  {
+    "index": 332,
+    "question": "ТЕСІВАП → число",
+    "type": "short-answer",
+    "correct": "1471825"
+  },
+  {
+    "index": 333,
+    "question": "958432929 → літери",
+    "type": "short-answer",
+    "correct": "ДЯВЕЗАДАД"
+  },
+  {
+    "index": 334,
+    "question": "ЧУСАКАС → число",
+    "type": "short-answer",
+    "correct": "4772227"
+  },
+  {
+    "index": 335,
+    "question": "31086018 → літери",
+    "type": "short-answer",
+    "correct": "ЗІНЮБОТЮ"
+  },
+  {
+    "index": 336,
+    "question": "936 → літери",
+    "type": "short-answer",
+    "correct": "ДЄБ"
+  },
+  {
+    "index": 337,
+    "question": "21621408 → літери",
+    "type": "short-answer",
+    "correct": "КІБАТЕНЮ"
+  },
+  {
+    "index": 338,
+    "question": "10167 → літери",
+    "type": "short-answer",
+    "correct": "ТОТИС"
+  },
+  {
+    "index": 339,
+    "question": "ЧЮНЮПИЧЇ → число",
+    "type": "short-answer",
+    "correct": "48085649"
+  },
+  {
+    "index": 340,
+    "question": "609794854 → літери",
+    "type": "short-answer",
+    "correct": "БОДУДЕВЯЧ"
+  },
+  {
+    "index": 341,
+    "question": "СЕ → число",
+    "type": "short-answer",
+    "correct": "74"
+  },
+  {
+    "index": 342,
+    "question": "БЇКИП → число",
+    "type": "short-answer",
+    "correct": "69265"
+  },
+  {
+    "index": 343,
+    "question": "БИЧЇ → число",
+    "type": "short-answer",
+    "correct": "6649"
+  },
+  {
+    "index": 344,
+    "question": "52693 → літери",
+    "type": "short-answer",
+    "correct": "ПАБЇЗ"
+  },
+  {
+    "index": 345,
+    "question": "КИДІ → число",
+    "type": "short-answer",
+    "correct": "2691"
+  },
+  {
+    "index": 346,
+    "question": "9183 → літери",
+    "type": "short-answer",
+    "correct": "ДІВЄ"
+  },
+  {
+    "index": 347,
+    "question": "ТАНУВЄ → число",
+    "type": "short-answer",
+    "correct": "120783"
+  },
+  {
+    "index": 348,
+    "question": "70051 → літери",
+    "type": "short-answer",
+    "correct": "СОНЯТ"
+  },
+  {
+    "index": 349,
+    "question": "СОВ → число",
+    "type": "short-answer",
+    "correct": "708"
+  },
+  {
+    "index": 350,
+    "question": "ЧЇКУВ → число",
+    "type": "short-answer",
+    "correct": "49278"
+  },
+  {
+    "index": 351,
+    "question": "ЧЇДЯВ → число",
+    "type": "short-answer",
+    "correct": "49958"
+  },
+  {
+    "index": 352,
+    "question": "503374 → літери",
+    "type": "short-answer",
+    "correct": "ПОЗЄСЕ"
+  },
+  {
+    "index": 353,
+    "question": "07618 → літери",
+    "type": "short-answer",
+    "correct": "НУБІВ"
+  },
+  {
+    "index": 354,
+    "question": "1359 → літери",
+    "type": "short-answer",
+    "correct": "ТЄПЇ"
+  },
+  {
+    "index": 355,
+    "question": "ЗУДОЗИТОПО → число",
+    "type": "short-answer",
+    "correct": "3790361050"
+  },
+  {
+    "index": 356,
+    "question": "3232365 → літери",
+    "type": "short-answer",
+    "correct": "ЗАЗАЗИП"
+  },
+  {
+    "index": 357,
+    "question": "ПУТЕВУ → число",
+    "type": "short-answer",
+    "correct": "571487"
+  },
+  {
+    "index": 358,
+    "question": "СУВ → число",
+    "type": "short-answer",
+    "correct": "778"
+  },
+  {
+    "index": 359,
+    "question": "СЮДЕКО → число",
+    "type": "short-answer",
+    "correct": "789420"
+  },
+  {
+    "index": 360,
+    "question": "4096891 → літери",
+    "type": "short-answer",
+    "correct": "ЧОДИВЇТ"
+  },
+  {
+    "index": 361,
+    "question": "61 → літери",
+    "type": "short-answer",
+    "correct": "БІ"
+  },
+  {
+    "index": 362,
+    "question": "БЇПИ → число",
+    "type": "short-answer",
+    "correct": "6956"
+  },
+  {
+    "index": 363,
+    "question": "ПАЗАТУБЇ → число",
+    "type": "short-answer",
+    "correct": "52321769"
+  },
+  {
+    "index": 364,
+    "question": "КОЧІБА → число",
+    "type": "short-answer",
+    "correct": "204162"
+  },
+  {
+    "index": 365,
+    "question": "БЄЗИЧ → число",
+    "type": "short-answer",
+    "correct": "63364"
+  },
+  {
+    "index": 366,
+    "question": "ТЄБІЗЮЗ → число",
+    "type": "short-answer",
+    "correct": "1361383"
+  },
+  {
+    "index": 367,
+    "question": "640770 → літери",
+    "type": "short-answer",
+    "correct": "БЕНУСО"
+  },
+  {
+    "index": 368,
+    "question": "КЯВУНУВІД → число",
+    "type": "short-answer",
+    "correct": "258707819"
+  },
+  {
+    "index": 369,
+    "question": "СЕНЮТУЗ → число",
+    "type": "short-answer",
+    "correct": "7408173"
+  },
+  {
+    "index": 370,
+    "question": "2729 → літери",
+    "type": "short-answer",
+    "correct": "КУКЇ"
+  },
+  {
+    "index": 371,
+    "question": "269800 → літери",
+    "type": "short-answer",
+    "correct": "КИДЮНО"
+  },
+  {
+    "index": 372,
+    "question": "ВУТЕТЄВІ → число",
+    "type": "short-answer",
+    "correct": "87141381"
+  },
+  {
+    "index": 373,
+    "question": "ПЇЧОНУД → число",
+    "type": "short-answer",
+    "correct": "5940079"
+  },
+  {
+    "index": 374,
+    "question": "59 → літери",
+    "type": "short-answer",
+    "correct": "ПЇ"
+  },
+  {
+    "index": 375,
+    "question": "074 → літери",
+    "type": "short-answer",
+    "correct": "НУЧ"
+  },
+  {
+    "index": 376,
+    "question": "ЗИКЮ → число",
+    "type": "short-answer",
+    "correct": "3628"
+  },
+  {
+    "index": 377,
+    "question": "ВЯНЇДЕНЯК → число",
+    "type": "short-answer",
+    "correct": "850994052"
+  },
+  {
+    "index": 378,
+    "question": "БЯДІН → число",
+    "type": "short-answer",
+    "correct": "65910"
+  },
+  {
+    "index": 379,
+    "question": "ТЄВОТОВАКЕ → число",
+    "type": "short-answer",
+    "correct": "1380108224"
+  },
+  {
+    "index": 380,
+    "question": "589 → літери",
+    "type": "short-answer",
+    "correct": "ПЮД"
+  },
+  {
+    "index": 381,
+    "question": "17749 → літери",
+    "type": "short-answer",
+    "correct": "ТУСЕД"
+  },
+  {
+    "index": 382,
+    "question": "716 → літери",
+    "type": "short-answer",
+    "correct": "СІБ"
+  },
+  {
+    "index": 383,
+    "question": "ЧЄДЮПУЗЕТ → число",
+    "type": "short-answer",
+    "correct": "439857341"
+  },
+  {
+    "index": 384,
+    "question": "437 → літери",
+    "type": "short-answer",
+    "correct": "ЧЄС"
+  },
+  {
+    "index": 385,
+    "question": "ЧЯЗЇДА → число",
+    "type": "short-answer",
+    "correct": "453992"
+  },
+  {
+    "index": 386,
+    "question": "ЗИЧЮВІ → число",
+    "type": "short-answer",
+    "correct": "364881"
+  },
+  {
+    "index": 387,
+    "question": "БОТІ → число",
+    "type": "short-answer",
+    "correct": "6011"
+  },
+  {
+    "index": 388,
+    "question": "30528535 → літери",
+    "type": "short-answer",
+    "correct": "ЗОПАВЯЗЯ"
+  },
+  {
+    "index": 389,
+    "question": "26 → літери",
+    "type": "short-answer",
+    "correct": "КИ"
+  },
+  {
+    "index": 390,
+    "question": "ПИКІ → число",
+    "type": "short-answer",
+    "correct": "5621"
+  },
+  {
+    "index": 391,
+    "question": "873424956 → літери",
+    "type": "short-answer",
+    "correct": "ВУЗЕКЕДЯБ"
+  },
+  {
+    "index": 392,
+    "question": "БУП → число",
+    "type": "short-answer",
+    "correct": "675"
+  },
+  {
+    "index": 393,
+    "question": "ЧОВ → число",
+    "type": "short-answer",
+    "correct": "408"
+  },
+  {
+    "index": 394,
+    "question": "БЕКЕСЕЧЕК → число",
+    "type": "short-answer",
+    "correct": "642474442"
+  },
+  {
+    "index": 395,
+    "question": "0583851 → літери",
+    "type": "short-answer",
+    "correct": "НЯВЄВЯТ"
+  },
+  {
+    "index": 396,
+    "question": "КЕВІ → число",
+    "type": "short-answer",
+    "correct": "2481"
+  },
+  {
+    "index": 397,
+    "question": "БЮДІДІЧ → число",
+    "type": "short-answer",
+    "correct": "6891914"
+  },
+  {
+    "index": 398,
+    "question": "СЮСЮНУН → число",
+    "type": "short-answer",
+    "correct": "7878070"
+  },
+  {
+    "index": 399,
+    "question": "66580 → літери",
+    "type": "short-answer",
+    "correct": "БИПЮН"
+  },
+  {
+    "index": 400,
+    "question": "21 → літери",
+    "type": "short-answer",
+    "correct": "КІ"
+  },
+  {
+    "index": 401,
+    "question": "ДІСЯ → число",
+    "type": "short-answer",
+    "correct": "9175"
+  },
+  {
+    "index": 402,
+    "question": "684641 → літери",
+    "type": "short-answer",
+    "correct": "БЮЧИЧІ"
+  },
+  {
+    "index": 403,
+    "question": "5140 → літери",
+    "type": "short-answer",
+    "correct": "ПІЧО"
+  },
+  {
+    "index": 404,
+    "question": "467 → літери",
+    "type": "short-answer",
+    "correct": "ЧИС"
+  },
+  {
+    "index": 405,
+    "question": "3145368 → літери",
+    "type": "short-answer",
+    "correct": "ЗІЧЯЗИВ"
+  },
+  {
+    "index": 406,
+    "question": "844 → літери",
+    "type": "short-answer",
+    "correct": "ВЕЧ"
+  },
+  {
+    "index": 407,
+    "question": "БІК → число",
+    "type": "short-answer",
+    "correct": "612"
+  },
+  {
+    "index": 408,
+    "question": "КІВЮЗЯ → число",
+    "type": "short-answer",
+    "correct": "218835"
+  },
+  {
+    "index": 409,
+    "question": "17967 → літери",
+    "type": "short-answer",
+    "correct": "ТУДИС"
+  },
+  {
+    "index": 410,
+    "question": "ДЄВОТ → число",
+    "type": "short-answer",
+    "correct": "93801"
+  },
+  {
+    "index": 411,
+    "question": "БЕСУСЮ → число",
+    "type": "short-answer",
+    "correct": "647778"
+  },
+  {
+    "index": 412,
+    "question": "ПИНАПЇН → число",
+    "type": "short-answer",
+    "correct": "5602590"
+  },
+  {
+    "index": 413,
+    "question": "2580637 → літери",
+    "type": "short-answer",
+    "correct": "КЯВОБЄС"
+  },
+  {
+    "index": 414,
+    "question": "ТЇКИ → число",
+    "type": "short-answer",
+    "correct": "1926"
+  },
+  {
+    "index": 415,
+    "question": "ДЕЗІ → число",
+    "type": "short-answer",
+    "correct": "9431"
+  },
+  {
+    "index": 416,
+    "question": "257912555 → літери",
+    "type": "short-answer",
+    "correct": "КЯСЇТАПЯП"
+  },
+  {
+    "index": 417,
+    "question": "ЗЕПЇ → число",
+    "type": "short-answer",
+    "correct": "3459"
+  },
+  {
+    "index": 418,
+    "question": "793 → літери",
+    "type": "short-answer",
+    "correct": "СЇЗ"
+  },
+  {
+    "index": 419,
+    "question": "ЗЯБЮВ → число",
+    "type": "short-answer",
+    "correct": "35688"
+  },
+  {
+    "index": 420,
+    "question": "9227321254 → літери",
+    "type": "short-answer",
+    "correct": "ДАКУЗАТАПЕ"
+  },
+  {
+    "index": 421,
+    "question": "958926474 → літери",
+    "type": "short-answer",
+    "correct": "ДЯВЇКИЧУЧ"
+  },
+  {
+    "index": 422,
+    "question": "ТАНУ → число",
+    "type": "short-answer",
+    "correct": "1207"
+  },
+  {
+    "index": 423,
+    "question": "10087 → літери",
+    "type": "short-answer",
+    "correct": "ТОНЮС"
+  },
+  {
+    "index": 424,
+    "question": "ТЇВЯН → число",
+    "type": "short-answer",
+    "correct": "19850"
+  },
+  {
+    "index": 425,
+    "question": "КІКОДО → число",
+    "type": "short-answer",
+    "correct": "212090"
+  },
+  {
+    "index": 426,
+    "question": "0325251 → літери",
+    "type": "short-answer",
+    "correct": "НЄКЯКЯТ"
+  },
+  {
+    "index": 427,
+    "question": "БУЗІЗОДУ → число",
+    "type": "short-answer",
+    "correct": "67313097"
+  },
+  {
+    "index": 428,
+    "question": "ДОВ → число",
+    "type": "short-answer",
+    "correct": "908"
+  },
+  {
+    "index": 429,
+    "question": "332 → літери",
+    "type": "short-answer",
+    "correct": "ЗЄК"
+  },
+  {
+    "index": 430,
+    "question": "91658181 → літери",
+    "type": "short-answer",
+    "correct": "ДІБЯВІВІ"
+  },
+  {
+    "index": 431,
+    "question": "ВЮЧІДЕД → число",
+    "type": "short-answer",
+    "correct": "8841949"
+  },
+  {
+    "index": 432,
+    "question": "ЧЯВЇПІ → число",
+    "type": "short-answer",
+    "correct": "458951"
+  },
+  {
+    "index": 433,
+    "question": "6286807 → літери",
+    "type": "short-answer",
+    "correct": "БАВИВОС"
+  },
+  {
+    "index": 434,
+    "question": "ТЄВАНЄБ → число",
+    "type": "short-answer",
+    "correct": "1382036"
+  },
+  {
+    "index": 435,
+    "question": "ЧІЗЮСА → число",
+    "type": "short-answer",
+    "correct": "413872"
+  },
+  {
+    "index": 436,
+    "question": "470531 → літери",
+    "type": "short-answer",
+    "correct": "ЧУНЯЗІ"
+  },
+  {
+    "index": 437,
+    "question": "ВАДИ → число",
+    "type": "short-answer",
+    "correct": "8296"
+  },
+  {
+    "index": 438,
+    "question": "18450 → літери",
+    "type": "short-answer",
+    "correct": "ТЮЧЯН"
+  },
+  {
+    "index": 439,
+    "question": "СІПАЗУБЯД → число",
+    "type": "short-answer",
+    "correct": "715237659"
+  },
+  {
+    "index": 440,
+    "question": "ПЕПЄ → число",
+    "type": "short-answer",
+    "correct": "5453"
+  },
+  {
+    "index": 441,
+    "question": "ЗОДЮТЄЗІКЕ → число",
+    "type": "short-answer",
+    "correct": "3098133124"
+  },
+  {
+    "index": 442,
+    "question": "992 → літери",
+    "type": "short-answer",
+    "correct": "ДЇК"
+  },
+  {
+    "index": 443,
+    "question": "ЗИВЯКІ → число",
+    "type": "short-answer",
+    "correct": "368521"
+  },
+  {
+    "index": 444,
+    "question": "890326 → літери",
+    "type": "short-answer",
+    "correct": "ВЇНЄКИ"
+  },
+  {
+    "index": 445,
+    "question": "086 → літери",
+    "type": "short-answer",
+    "correct": "НЮБ"
+  },
+  {
+    "index": 446,
+    "question": "КІЧИНЄ → число",
+    "type": "short-answer",
+    "correct": "214603"
+  },
+  {
+    "index": 447,
+    "question": "СИДУНЇ → число",
+    "type": "short-answer",
+    "correct": "769709"
+  },
+  {
+    "index": 448,
+    "question": "587329359 → літери",
+    "type": "short-answer",
+    "correct": "ПЮСЄКЇЗЯД"
+  },
+  {
+    "index": 449,
+    "question": "БО → число",
+    "type": "short-answer",
+    "correct": "60"
+  },
+  {
+    "index": 450,
+    "question": "7091 → літери",
+    "type": "short-answer",
+    "correct": "СОДІ"
+  },
+  {
+    "index": 451,
+    "question": "8419 → літери",
+    "type": "short-answer",
+    "correct": "ВЕТЇ"
+  },
+  {
+    "index": 452,
+    "question": "8629562 → літери",
+    "type": "short-answer",
+    "correct": "ВИКЇПИК"
+  },
+  {
+    "index": 453,
+    "question": "9711 → літери",
+    "type": "short-answer",
+    "correct": "ДУТІ"
+  },
+  {
+    "index": 454,
+    "question": "ТЯЗЕ → число",
+    "type": "short-answer",
+    "correct": "1534"
+  },
+  {
+    "index": 455,
+    "question": "4703 → літери",
+    "type": "short-answer",
+    "correct": "ЧУНЄ"
+  },
+  {
+    "index": 456,
+    "question": "ЗУВЕБ → число",
+    "type": "short-answer",
+    "correct": "37846"
+  },
+  {
+    "index": 457,
+    "question": "9106 → літери",
+    "type": "short-answer",
+    "correct": "ДІНИ"
+  },
+  {
+    "index": 458,
+    "question": "ПУТОТИД → число",
+    "type": "short-answer",
+    "correct": "5710169"
+  },
+  {
+    "index": 459,
+    "question": "0800397234 → літери",
+    "type": "short-answer",
+    "correct": "НЮНОЗЇСАЗЕ"
+  },
+  {
+    "index": 460,
+    "question": "130319 → літери",
+    "type": "short-answer",
+    "correct": "ТЄНЄТЇ"
+  },
+  {
+    "index": 461,
+    "question": "ЧУС → число",
+    "type": "short-answer",
+    "correct": "477"
+  },
+  {
+    "index": 462,
+    "question": "ЗЕЧЇКЇВА → число",
+    "type": "short-answer",
+    "correct": "34492982"
+  },
+  {
+    "index": 463,
+    "question": "2649522 → літери",
+    "type": "short-answer",
+    "correct": "КИЧЇПАК"
+  },
+  {
+    "index": 464,
+    "question": "ДЕТОБЯ → число",
+    "type": "short-answer",
+    "correct": "941065"
+  },
+  {
+    "index": 465,
+    "question": "80787765 → літери",
+    "type": "short-answer",
+    "correct": "ВОСЮСУБЯ"
+  },
+  {
+    "index": 466,
+    "question": "3375 → літери",
+    "type": "short-answer",
+    "correct": "ЗЄСЯ"
+  },
+  {
+    "index": 467,
+    "question": "968 → літери",
+    "type": "short-answer",
+    "correct": "ДИВ"
+  },
+  {
+    "index": 468,
+    "question": "ЧЄНЄД → число",
+    "type": "short-answer",
+    "correct": "43039"
+  },
+  {
+    "index": 469,
+    "question": "ВА → число",
+    "type": "short-answer",
+    "correct": "82"
+  },
+  {
+    "index": 470,
+    "question": "434214 → літери",
+    "type": "short-answer",
+    "correct": "ЧЄЧАТЕ"
+  },
+  {
+    "index": 471,
+    "question": "5972 → літери",
+    "type": "short-answer",
+    "correct": "ПЇСА"
+  },
+  {
+    "index": 472,
+    "question": "ЗИБ → число",
+    "type": "short-answer",
+    "correct": "366"
+  },
+  {
+    "index": 473,
+    "question": "ЧЄНАКИЧЯ → число",
+    "type": "short-answer",
+    "correct": "43022645"
+  },
+  {
+    "index": 474,
+    "question": "БАДАПЕН → число",
+    "type": "short-answer",
+    "correct": "6292540"
+  },
+  {
+    "index": 475,
+    "question": "25544 → літери",
+    "type": "short-answer",
+    "correct": "КЯПЕЧ"
+  },
+  {
+    "index": 476,
+    "question": "ПЮЧЇНЄ → число",
+    "type": "short-answer",
+    "correct": "584903"
+  },
+  {
+    "index": 477,
+    "question": "637207 → літери",
+    "type": "short-answer",
+    "correct": "БЄСАНУ"
+  },
+  {
+    "index": 478,
+    "question": "06 → літери",
+    "type": "short-answer",
+    "correct": "НИ"
+  },
+  {
+    "index": 479,
+    "question": "ЧІБЇТЕТЮЧ → число",
+    "type": "short-answer",
+    "correct": "416914184"
+  },
+  {
+    "index": 480,
+    "question": "КИДЯНУБОВ → число",
+    "type": "short-answer",
+    "correct": "269507608"
+  },
+  {
+    "index": 481,
+    "question": "600 → літери",
+    "type": "short-answer",
+    "correct": "БОН"
+  },
+  {
+    "index": 482,
+    "question": "7324 → літери",
+    "type": "short-answer",
+    "correct": "СЄКЕ"
+  },
+  {
+    "index": 483,
+    "question": "ПИСУЗ → число",
+    "type": "short-answer",
+    "correct": "56773"
+  },
+  {
+    "index": 484,
+    "question": "6083 → літери",
+    "type": "short-answer",
+    "correct": "БОВЄ"
+  },
+  {
+    "index": 485,
+    "question": "66201 → літери",
+    "type": "short-answer",
+    "correct": "БИКОТ"
+  },
+  {
+    "index": 486,
+    "question": "60 → літери",
+    "type": "short-answer",
+    "correct": "БО"
+  },
+  {
+    "index": 487,
+    "question": "820 → літери",
+    "type": "short-answer",
+    "correct": "ВАН"
+  },
+  {
+    "index": 488,
+    "question": "ЗАСИПЮВ → число",
+    "type": "short-answer",
+    "correct": "3276588"
+  },
+  {
+    "index": 489,
+    "question": "ДЮПЕЧЮДІ → число",
+    "type": "short-answer",
+    "correct": "98544891"
+  },
+  {
+    "index": 490,
+    "question": "3951844 → літери",
+    "type": "short-answer",
+    "correct": "ЗЇПІВЕЧ"
+  },
+  {
+    "index": 491,
+    "question": "ВЕЗЇП → число",
+    "type": "short-answer",
+    "correct": "84395"
+  },
+  {
+    "index": 492,
+    "question": "723 → літери",
+    "type": "short-answer",
+    "correct": "САЗ"
+  },
+  {
+    "index": 493,
+    "question": "4699 → літери",
+    "type": "short-answer",
+    "correct": "ЧИДЇ"
+  },
+  {
+    "index": 494,
+    "question": "493300 → літери",
+    "type": "short-answer",
+    "correct": "ЧЇЗЄНО"
+  },
+  {
+    "index": 495,
+    "question": "ВОДЇБАЗО → число",
+    "type": "short-answer",
+    "correct": "80996230"
+  },
+  {
+    "index": 496,
+    "question": "ДУНІПЮЧ → число",
+    "type": "short-answer",
+    "correct": "9701584"
+  },
+  {
+    "index": 497,
+    "question": "501966684 → літери",
+    "type": "short-answer",
+    "correct": "ПОТЇБИБЮЧ"
+  },
+  {
+    "index": 498,
+    "question": "542932 → літери",
+    "type": "short-answer",
+    "correct": "ПЕКЇЗА"
+  },
+  {
+    "index": 499,
+    "question": "672 → літери",
+    "type": "short-answer",
+    "correct": "БУК"
+  }
+]
