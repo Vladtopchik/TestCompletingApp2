@@ -1,0 +1,857 @@
+[
+  {
+    "index": 0,
+    "question": "Яка висота Сонця над горизонтом у полудень у день літнього сонцестояння на широті [latex](\\varphi = 50^\\circ)?\nСхилення Сонця в цей день [latex](\\delta = +23{,}4^\\circ).",
+    "type": "single-choice",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "16,6°",
+      "B": "40°",
+      "C": "63,4°",
+      "D": "73,4°"
+    },
+    "correct": "C",
+    "format": true,
+    "explanation": "У верхній кульмінації [latex](h = 90^\\circ - \\varphi + \\delta = 90^\\circ - 50^\\circ + 23{,}4^\\circ = 63{,}4^\\circ)."
+  },
+  {
+    "index": 1,
+    "question": "Зоря має схилення δ = +20° і кульмінує на південь від зеніту. Яка її висота у верхній кульмінації на широті 45°? Введіть число в градусах.",
+    "type": "short-answer",
+    "topic": "Сферична астрономія",
+    "correct": [
+      "65",
+      "65°"
+    ],
+    "explanation": "h = 90° − φ + δ = 90° − 45° + 20° = 65°."
+  },
+  {
+    "index": 2,
+    "question": "Яка умова незахідності світила на широті φ (Північна півкуля)?",
+    "type": "single-choice",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "δ > 90° − φ",
+      "B": "δ < 90° − φ",
+      "C": "δ > φ",
+      "D": "|δ| < φ"
+    },
+    "correct": "A",
+    "explanation": "Нижня кульмінація h = φ + δ − 90° має бути додатною, звідки δ > 90° − φ."
+  },
+  {
+    "index": 3,
+    "question": "Висота північного полюса світу над горизонтом дорівнює географічній широті місця спостереження.",
+    "type": "true-false",
+    "topic": "Сферична астрономія",
+    "correct": true,
+    "explanation": "Це основа визначення широти за висотою Полярної (з похибкою ≈ 1°)."
+  },
+  {
+    "index": 4,
+    "question": "Зоря має схилення −45°. Як вона поводиться на широті +50°?",
+    "type": "single-choice",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "Незахідна",
+      "B": "Сходить і заходить",
+      "C": "Ніколи не сходить",
+      "D": "Видима лише вдень"
+    },
+    "correct": "C",
+    "explanation": "Невсхідні світила мають δ < −(90° − φ) = −40°. Оскільки −45° < −40°, зоря ніколи не піднімається над горизонтом."
+  },
+  {
+    "index": 5,
+    "question": "До якої північної широти (у градусах) зоря зі схиленням δ = −30° ще піднімається над горизонтом у верхній кульмінації? Введіть число.",
+    "type": "short-answer",
+    "topic": "Сферична астрономія",
+    "correct": [
+      "60",
+      "60°"
+    ],
+    "explanation": "Граничний випадок h = 0: 90° − φ + δ = 0, звідки φ = 90° + δ = 60°."
+  },
+  {
+    "index": 6,
+    "question": "Співвіднесіть координату з її означенням.",
+    "type": "matching-question",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "Висота h",
+      "B": "Схилення δ",
+      "C": "Пряме сходження α",
+      "D": "Годинний кут t"
+    },
+    "matches": {
+      "1": "Кут від небесного екватора до світила",
+      "2": "Кут від горизонту до світила",
+      "3": "Кут уздовж екватора від точки весняного рівнодення",
+      "4": "Кут між небесним меридіаном і колом схилення світила",
+      "5": "Кут уздовж горизонту від точки півночі до зеніту"
+    },
+    "correct": {
+      "A": "2",
+      "B": "1",
+      "C": "3",
+      "D": "4"
+    },
+    "explanation": "Висота й азимут — горизонтальні координати, α і δ — екваторіальні, t — годинний кут (зростає на захід)."
+  },
+  {
+    "index": 7,
+    "question": "Які з наведених об'єктів на небесній сфері є точками (а не колами)?",
+    "type": "multiple-choice",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "Зеніт",
+      "B": "Небесний екватор",
+      "C": "Полюс світу",
+      "D": "Точка весняного рівнодення",
+      "E": "Небесний меридіан"
+    },
+    "correct": [
+      "A",
+      "C",
+      "D"
+    ],
+    "explanation": "Екватор і меридіан — великі кола; зеніт, полюс світу й точка весняного рівнодення — точки."
+  },
+  {
+    "index": 8,
+    "question": "Розташуйте точки екліптики в тій послідовності, у якій Сонце проходить їх протягом календарного року (починаючи з січня).",
+    "type": "ordering",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "1": "Літнє сонцестояння",
+      "2": "Весняне рівнодення",
+      "3": "Осіннє рівнодення",
+      "4": "Зимове сонцестояння"
+    },
+    "correct": [
+      "2",
+      "1",
+      "3",
+      "4"
+    ],
+    "explanation": "Березень → червень → вересень → грудень."
+  },
+  {
+    "index": 9,
+    "question": "Що таке верхня кульмінація світила?",
+    "type": "single-choice",
+    "topic": "Сферична астрономія",
+    "choices": {
+      "A": "Проходження світила через небесний меридіан у момент найбільшої висоти (годинний кут t = 0)",
+      "B": "Момент сходу світила",
+      "C": "Момент заходу світила",
+      "D": "Проходження світила через небесний екватор"
+    },
+    "correct": "A",
+    "explanation": "Кульмінація — проходження через небесний меридіан. У верхній кульмінації світило найвище над горизонтом."
+  },
+  {
+    "index": 10,
+    "question": "Довготи двох міст відрізняються на 45°. Яка різниця їхнього місцевого часу в годинах? Введіть число.",
+    "type": "short-answer",
+    "topic": "Час і календар",
+    "correct": [
+      "3"
+    ],
+    "explanation": "15° довготи = 1 година, тому 45° = 3 години."
+  },
+  {
+    "index": 11,
+    "question": "Яка тривалість зоряної доби?",
+    "type": "single-choice",
+    "topic": "Час і календар",
+    "choices": {
+      "A": "24 год",
+      "B": "23 год 56 хв 4 с",
+      "C": "24 год 4 хв",
+      "D": "23 год 4 хв"
+    },
+    "correct": "B",
+    "explanation": "Зоряна доба на ≈ 4 хв коротша за середню сонячну."
+  },
+  {
+    "index": 12,
+    "question": "Чому щодня зорі сходять приблизно на 4 хв раніше?",
+    "type": "single-choice",
+    "topic": "Час і календар",
+    "choices": {
+      "A": "Через рефракцію",
+      "B": "Через прецесію осі Землі",
+      "C": "Через річний рух Землі навколо Сонця: зоряна доба коротша за сонячну",
+      "D": "Через рух Місяця"
+    },
+    "correct": "C",
+    "explanation": "За рік Земля робить на один оберт відносно зір більше, ніж відносно Сонця: 366,24 зоряних і 365,24 сонячних діб."
+  },
+  {
+    "index": 13,
+    "question": "Рівняння часу — це різниця між справжнім і середнім сонячним часом.",
+    "type": "true-false",
+    "topic": "Час і календар",
+    "correct": true,
+    "explanation": "Протягом року воно змінюється приблизно від −14 до +16 хв."
+  },
+  {
+    "index": 14,
+    "question": "Місцевий час у пункті з довготою 30° сх. д. випереджає всесвітній час UTC на скільки годин? Введіть число.",
+    "type": "short-answer",
+    "topic": "Час і календар",
+    "correct": [
+      "2"
+    ],
+    "explanation": "30° / 15° на годину = 2 години."
+  },
+  {
+    "index": 15,
+    "question": "Тропічний рік трохи коротший за сидеричний.",
+    "type": "true-false",
+    "topic": "Час і календар",
+    "correct": true,
+    "explanation": "Тропічний ≈ 365,2422 доби, сидеричний ≈ 365,2564 доби — через прецесію."
+  },
+  {
+    "index": 16,
+    "question": "Сидеричний період Марса T = 1,88 року. Знайдіть його синодичний період S у роках (округліть до десятих).",
+    "type": "short-answer",
+    "topic": "Рух Сонця, Місяця й планет",
+    "correct": [
+      "2,1"
+    ],
+    "format": true,
+    "explanation": "Для верхніх планет [latex](\\frac{1}{S} = 1 - \\frac{1}{T}), тому S ≈ 2,14 року ≈ 780 діб."
+  },
+  {
+    "index": 17,
+    "question": "Венера розташована між Землею і Сонцем на одній прямій. Така конфігурація називається:",
+    "type": "single-choice",
+    "topic": "Рух Сонця, Місяця й планет",
+    "choices": {
+      "A": "Верхнім з'єднанням",
+      "B": "Нижнім з'єднанням",
+      "C": "Протистоянням",
+      "D": "Східною квадратурою"
+    },
+    "correct": "B",
+    "explanation": "Верхнє з'єднання нижньої планети — за Сонцем, нижнє — між Землею і Сонцем."
+  },
+  {
+    "index": 18,
+    "question": "Які конфігурації можливі лише для верхніх планет?",
+    "type": "multiple-choice",
+    "topic": "Рух Сонця, Місяця й планет",
+    "choices": {
+      "A": "Протистояння",
+      "B": "Східна квадратура",
+      "C": "Найбільша елонгація",
+      "D": "Нижнє з'єднання"
+    },
+    "correct": [
+      "A",
+      "B"
+    ],
+    "explanation": "Протистояння й квадратури бувають тільки у верхніх планет; найбільша елонгація і нижнє з'єднання — у нижніх."
+  },
+  {
+    "index": 19,
+    "question": "У яку фазу Місяця може відбуватися сонячне затемнення?",
+    "type": "single-choice",
+    "topic": "Рух Сонця, Місяця й планет",
+    "choices": {
+      "A": "Повня",
+      "B": "Перша чверть",
+      "C": "Новий місяць",
+      "D": "Остання чверть"
+    },
+    "correct": "C",
+    "explanation": "Затемнення Сонця: Місяць між Землею і Сонцем, тобто новий місяць. Місячне — у повню."
+  },
+  {
+    "index": 20,
+    "question": "Місячні затемнення бувають кільцевими.",
+    "type": "true-false",
+    "topic": "Рух Сонця, Місяця й планет",
+    "correct": false,
+    "explanation": "Кільцеві затемнення — сонячні. Місячні бувають повні, часткові й півтіньові."
+  },
+  {
+    "index": 21,
+    "question": "Приблизно через скільки років повторюються схожі затемнення (період сароса)? Введіть ціле число.",
+    "type": "short-answer",
+    "topic": "Рух Сонця, Місяця й планет",
+    "correct": [
+      "18"
+    ],
+    "explanation": "Сарос ≈ 18 років 11 діб (6585,3 доби)."
+  },
+  {
+    "index": 22,
+    "question": "Земля розташована так, як показано на рисунку. У якій точці Марс перебуває в протистоянні?",
+    "type": "single-choice",
+    "topic": "Рух Сонця, Місяця й планет",
+    "choices": {
+      "A": "Точка 1",
+      "B": "Точка 2",
+      "C": "Точка 3",
+      "D": "Точка 4"
+    },
+    "correct": "A",
+    "images": [
+      "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWRhc2hhcnJheT0iNCA0Ii8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSIxMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWRhc2hhcnJheT0iNCA0Ii8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSIxMiIgZmlsbD0iI2Y1YjgwMCIvPjx0ZXh0IHg9IjIwMCIgeT0iMTc2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj7QodC+0L3RhtC1PC90ZXh0PjxjaXJjbGUgY3g9IjI2MCIgY3k9IjE1MCIgcj0iNyIgZmlsbD0iIzI1NjNlYiIvPjx0ZXh0IHg9IjI2MCIgeT0iMTM0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMjU2M2ViIj7Ql9C10LzQu9GPPC90ZXh0PjxjaXJjbGUgY3g9IjMxMCIgY3k9IjE1MCIgcj0iNiIgZmlsbD0iI2RjMjYyNiIvPjx0ZXh0IHg9IjMyMiIgeT0iMTQ0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSIgZm9udC1zaXplPSIxOCI+MTwvdGV4dD48Y2lyY2xlIGN4PSI5MCIgY3k9IjE1MCIgcj0iNiIgZmlsbD0iI2RjMjYyNiIvPjx0ZXh0IHg9IjY4IiB5PSIxNDQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij4yPC90ZXh0PjxjaXJjbGUgY3g9IjIwMCIgY3k9IjQwIiByPSI2IiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iMjEwIiB5PSIzNiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiIGZvbnQtc2l6ZT0iMTgiPjM8L3RleHQ+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjYwIiByPSI2IiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iMjEwIiB5PSIyODIiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij40PC90ZXh0Pjx0ZXh0IHg9IjM4OCIgeT0iMjAiIHRleHQtYW5jaG9yPSJlbmQiIGZpbGw9IiNkYzI2MjYiPtGC0L7Rh9C60LggMeKAkzQ6INC/0L7Qu9C+0LbQtdC90L3RjyDQnNCw0YDRgdCwPC90ZXh0Pjwvc3ZnPg=="
+    ],
+    "explanation": "У протистоянні Земля лежить на прямій між Сонцем і планетою, тому Марс у точці 1."
+  },
+  {
+    "index": 23,
+    "question": "Земля розташована так, як показано на рисунку. У якій точці Марс перебуває у з'єднанні з Сонцем?",
+    "type": "single-choice",
+    "topic": "Рух Сонця, Місяця й планет",
+    "choices": {
+      "A": "Точка 1",
+      "B": "Точка 2",
+      "C": "Точка 3",
+      "D": "Точка 4"
+    },
+    "correct": "B",
+    "images": [
+      "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmZiIvPjxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1MCIgcj0iNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWRhc2hhcnJheT0iNCA0Ii8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSIxMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OSIgc3Ryb2tlLWRhc2hhcnJheT0iNCA0Ii8+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMTUwIiByPSIxMiIgZmlsbD0iI2Y1YjgwMCIvPjx0ZXh0IHg9IjIwMCIgeT0iMTc2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj7QodC+0L3RhtC1PC90ZXh0PjxjaXJjbGUgY3g9IjI2MCIgY3k9IjE1MCIgcj0iNyIgZmlsbD0iIzI1NjNlYiIvPjx0ZXh0IHg9IjI2MCIgeT0iMTM0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMjU2M2ViIj7Ql9C10LzQu9GPPC90ZXh0PjxjaXJjbGUgY3g9IjMxMCIgY3k9IjE1MCIgcj0iNiIgZmlsbD0iI2RjMjYyNiIvPjx0ZXh0IHg9IjMyMiIgeT0iMTQ0IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSIgZm9udC1zaXplPSIxOCI+MTwvdGV4dD48Y2lyY2xlIGN4PSI5MCIgY3k9IjE1MCIgcj0iNiIgZmlsbD0iI2RjMjYyNiIvPjx0ZXh0IHg9IjY4IiB5PSIxNDQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij4yPC90ZXh0PjxjaXJjbGUgY3g9IjIwMCIgY3k9IjQwIiByPSI2IiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iMjEwIiB5PSIzNiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiIGZvbnQtc2l6ZT0iMTgiPjM8L3RleHQ+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjYwIiByPSI2IiBmaWxsPSIjZGMyNjI2Ii8+PHRleHQgeD0iMjEwIiB5PSIyODIiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij40PC90ZXh0Pjx0ZXh0IHg9IjM4OCIgeT0iMjAiIHRleHQtYW5jaG9yPSJlbmQiIGZpbGw9IiNkYzI2MjYiPtGC0L7Rh9C60LggMeKAkzQ6INC/0L7Qu9C+0LbQtdC90L3RjyDQnNCw0YDRgdCwPC90ZXh0Pjwvc3ZnPg=="
+    ],
+    "explanation": "У з'єднанні Сонце лежить на прямій між Землею і планетою, тобто Марс у точці 2."
+  },
+  {
+    "index": 24,
+    "question": "Радіус орбіти Венери 0,72 а.о. (орбіту вважайте колом). Яка найбільша елонгація Венери в градусах? Округліть до цілого.",
+    "type": "short-answer",
+    "topic": "Рух Сонця, Місяця й планет",
+    "correct": [
+      "46"
+    ],
+    "format": true,
+    "explanation": "[latex](\\sin\\varepsilon = \\frac{a}{a_{\\oplus}} = 0{,}72), тому ε ≈ 46°."
+  },
+  {
+    "index": 25,
+    "question": "Велика піввісь орбіти астероїда 4 а.о. Який його період обертання в роках? Введіть число.",
+    "type": "short-answer",
+    "topic": "Небесна механіка",
+    "correct": [
+      "8"
+    ],
+    "explanation": "T² = a³ = 64, тому T = 8 років."
+  },
+  {
+    "index": 26,
+    "question": "Період комети Галлея 76 років. Яка велика піввісь її орбіти в а.о.? Округліть до цілого.",
+    "type": "short-answer",
+    "topic": "Небесна механіка",
+    "correct": [
+      "18"
+    ],
+    "format": true,
+    "explanation": "[latex](a = T^{2/3} = 76^{2/3} \\approx 17{,}9) а.о."
+  },
+  {
+    "index": 27,
+    "question": "Відстань планети від Сонця в перигелії q, в афелії Q. Чому дорівнює відношення швидкостей v(перигелій)/v(афелій)?",
+    "type": "single-choice",
+    "topic": "Небесна механіка",
+    "choices": {
+      "A": "q / Q",
+      "B": "Q / q",
+      "C": "Q² / q²",
+      "D": "1"
+    },
+    "correct": "B",
+    "explanation": "За другим законом Кеплера в апсидах v·r = const, тому v₁/v₂ = Q/q."
+  },
+  {
+    "index": 28,
+    "question": "На рисунку зображено орбіту планети (Сонце в одному з фокусів). У якій точці швидкість планети найбільша?",
+    "type": "single-choice",
+    "topic": "Небесна механіка",
+    "choices": {
+      "A": "Точка 1",
+      "B": "Точка 2",
+      "C": "Точка 3",
+      "D": "Точка 4"
+    },
+    "correct": "A",
+    "images": [
+      "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmZiIvPjxlbGxpcHNlIGN4PSIyMDAiIGN5PSIxNTAiIHJ4PSIxNTAiIHJ5PSIxMDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGNpcmNsZSBjeD0iMzExLjgiIGN5PSIxNTAiIHI9IjEyIiBmaWxsPSIjZjViODAwIiBzdHJva2U9IiNjODgiIHN0cm9rZS13aWR0aD0iMSIvPjx0ZXh0IHg9IjMxMiIgeT0iMTgyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMzMzIj7QodC+0L3RhtC1PC90ZXh0PjxjaXJjbGUgY3g9IjM1MCIgY3k9IjE1MCIgcj0iNiIgZmlsbD0iIzI1NjNlYiIvPjx0ZXh0IHg9IjM2MCIgeT0iMTQwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSIgZm9udC1zaXplPSIxOCI+MTwvdGV4dD48Y2lyY2xlIGN4PSIyMDAiIGN5PSI1MCIgcj0iNiIgZmlsbD0iIzI1NjNlYiIvPjx0ZXh0IHg9IjIxMCIgeT0iNDQiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij4yPC90ZXh0PjxjaXJjbGUgY3g9IjUwIiBjeT0iMTUwIiByPSI2IiBmaWxsPSIjMjU2M2ViIi8+PHRleHQgeD0iMjgiIHk9IjE0MCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMxMTEiIGZvbnQtc2l6ZT0iMTgiPjM8L3RleHQ+PGNpcmNsZSBjeD0iMjAwIiBjeT0iMjUwIiByPSI2IiBmaWxsPSIjMjU2M2ViIi8+PHRleHQgeD0iMjEwIiB5PSIyNzIiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIiBmb250LXNpemU9IjE4Ij40PC90ZXh0Pjwvc3ZnPg=="
+    ],
+    "explanation": "Точка 1 — перигелій, найближча до Сонця: там швидкість найбільша (закон площ)."
+  },
+  {
+    "index": 29,
+    "question": "Перша космічна швидкість для планети більша за другу.",
+    "type": "true-false",
+    "topic": "Небесна механіка",
+    "correct": false,
+    "explanation": "v₂ = v₁·√2, тому друга завжди більша за першу."
+  },
+  {
+    "index": 30,
+    "question": "Перша космічна швидкість для небесного тіла 5 км/с. Яка друга космічна швидкість у км/с? Округліть до десятих.",
+    "type": "short-answer",
+    "topic": "Небесна механіка",
+    "correct": [
+      "7,1"
+    ],
+    "format": true,
+    "explanation": "[latex](v_2 = v_1\\sqrt{2} \\approx 7{,}07) км/с."
+  },
+  {
+    "index": 31,
+    "question": "Чому для визначення мас компонентів подвійної зорі потрібна уточнена (ньютонівська) форма третього закону Кеплера?",
+    "type": "single-choice",
+    "topic": "Небесна механіка",
+    "choices": {
+      "A": "Бо зорі рухаються по колах",
+      "B": "Бо маса однієї зорі набагато менша за іншу",
+      "C": "Бо маси порівнянні й обидві зорі обертаються навколо спільного центра мас",
+      "D": "Бо період у такому випадку не вимірюється"
+    },
+    "correct": "C",
+    "explanation": "У формулі T² = 4π²a³/(G(M₁+M₂)) є сума мас; прості T² = a³ — лише для M ≫ m."
+  },
+  {
+    "index": 32,
+    "question": "Подвійна зоря: велика піввісь відносної орбіти 10 а.о., період 10 років. Яка сума мас компонентів у масах Сонця? Введіть число.",
+    "type": "short-answer",
+    "topic": "Небесна механіка",
+    "correct": [
+      "10"
+    ],
+    "format": true,
+    "explanation": "[latex](M_1 + M_2 = \\frac{a^3}{T^2} = \\frac{1000}{100} = 10) M☉."
+  },
+  {
+    "index": 33,
+    "question": "Знайдіть гравітаційний радіус Сонця у кілометрах (r = 2GM/c², M = 1,99·10³⁰ кг). Округліть до цілого.",
+    "type": "short-answer",
+    "topic": "Небесна механіка",
+    "correct": [
+      "3"
+    ],
+    "explanation": "r ≈ 2,95 км ≈ 3 км."
+  },
+  {
+    "index": 34,
+    "question": "Температуру зорі збільшили вдвічі при сталому радіусі. У скільки разів зросла її світність?",
+    "type": "single-choice",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "A": "У 2 рази",
+      "B": "У 4 рази",
+      "C": "У 8 разів",
+      "D": "У 16 разів"
+    },
+    "correct": "D",
+    "format": true,
+    "explanation": "[latex](L \\propto T^4), тому [latex](2^4 = 16)."
+  },
+  {
+    "index": 35,
+    "question": "Зоря має ту ж температуру, що й Сонце, але її радіус у 3 рази більший. У скільки разів її світність більша за сонячну? Введіть число.",
+    "type": "short-answer",
+    "topic": "Зорі та випромінювання",
+    "correct": [
+      "9"
+    ],
+    "format": true,
+    "explanation": "[latex](L \\propto R^2) при сталій T, тому [latex](3^2 = 9)."
+  },
+  {
+    "index": 36,
+    "question": "Максимум випромінювання зорі припадає на λ = 290 нм. Яка температура її поверхні в К? Закон Віна: λ·T = 2,9·10⁻³ м·К. Введіть число без пробілів.",
+    "type": "short-answer",
+    "topic": "Зорі та випромінювання",
+    "correct": [
+      "10000",
+      "10 000"
+    ],
+    "format": true,
+    "explanation": "[latex](T = \\frac{2{,}9\\cdot 10^{-3}}{2{,}9\\cdot 10^{-7}} = 10^4) К."
+  },
+  {
+    "index": 37,
+    "question": "Зоря першої величини і зоря шостої величини. У скільки разів перша яскравіша?",
+    "type": "single-choice",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "A": "У 5 разів",
+      "B": "У 6 разів",
+      "C": "У 100 разів",
+      "D": "У 500 разів"
+    },
+    "correct": "C",
+    "explanation": "Різниця 5 зоряних величин відповідає різниці яскравості рівно у 100 разів (формула Погсона)."
+  },
+  {
+    "index": 38,
+    "question": "Зоря має видиму величину m = 3 і абсолютну M = −2. Яка відстань до неї в парсеках? Введіть число.",
+    "type": "short-answer",
+    "topic": "Зорі та випромінювання",
+    "correct": [
+      "100"
+    ],
+    "format": true,
+    "explanation": "[latex](m - M = 5\\lg r - 5), тобто [latex](5 = 5\\lg r - 5), [latex](\\lg r = 2), [latex](r = 100) пк."
+  },
+  {
+    "index": 39,
+    "question": "Річний паралакс зорі 0,05″. Яка відстань до неї в парсеках? Введіть число.",
+    "type": "short-answer",
+    "topic": "Зорі та випромінювання",
+    "correct": [
+      "20"
+    ],
+    "explanation": "r = 1/π″ = 1/0,05 = 20 пк."
+  },
+  {
+    "index": 40,
+    "question": "Розташуйте спектральні класи від найгарячіших зір до найхолодніших.",
+    "type": "ordering",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "1": "A",
+      "2": "K",
+      "3": "O",
+      "4": "M",
+      "5": "F",
+      "6": "G",
+      "7": "B"
+    },
+    "correct": [
+      "3",
+      "7",
+      "1",
+      "5",
+      "6",
+      "2",
+      "4"
+    ],
+    "explanation": "Мнемоніка: O B A F G K M. Сонце належить до класу G2."
+  },
+  {
+    "index": 41,
+    "question": "Співвіднесіть тип об'єкта з його характеристикою.",
+    "type": "matching-question",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "A": "Цефеїда",
+      "B": "Білий карлик",
+      "C": "Пульсар",
+      "D": "Чорна діра"
+    },
+    "matches": {
+      "1": "Період пульсацій пов'язаний зі світністю, «стандартна свічка»",
+      "2": "Залишок зорі з масою ядра менше 1,4 M☉",
+      "3": "Нейтронна зоря, що швидко обертається й дає періодичні імпульси",
+      "4": "Об'єкт, друга космічна швидкість якого на горизонті подій дорівнює c",
+      "5": "Зоря головної послідовності, що перетворює водень на гелій"
+    },
+    "correct": {
+      "A": "1",
+      "B": "2",
+      "C": "3",
+      "D": "4"
+    },
+    "explanation": "Цефеїди — індикатори відстаней; білий карлик, нейтронна зоря й чорна діра — кінцеві стадії еволюції."
+  },
+  {
+    "index": 42,
+    "question": "Чим масивніша зоря головної послідовності, тим довше вона живе.",
+    "type": "true-false",
+    "topic": "Зорі та випромінювання",
+    "correct": false,
+    "explanation": "Масивні зорі витрачають паливо значно швидше: час життя t ∝ M/L ∝ M⁻²·⁵."
+  },
+  {
+    "index": 43,
+    "question": "Яка область діаграми Герцшпрунга–Рассела відповідає білим карликам?",
+    "type": "single-choice",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "A": "Область 1",
+      "B": "Область 2",
+      "C": "Область 3",
+      "D": "Жодна з них"
+    },
+    "correct": "C",
+    "images": [
+      "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmZiIvPjxsaW5lIHgxPSI1MCIgeTE9IjI2MCIgeDI9IjUwIiB5Mj0iMjAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjUwIiB5MT0iMjYwIiB4Mj0iMzgwIiB5Mj0iMjYwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxwb2x5Z29uIHBvaW50cz0iNTAsMTQgNDUsMjYgNTUsMjYiIGZpbGw9IiMzMzMiLz48cG9seWdvbiBwb2ludHM9IjM4NiwyNjAgMzc0LDI1NSAzNzQsMjY1IiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iMjE1IiB5PSIyODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPtCz0LDRgNGP0YfRliDQt9C+0YDRliAg4oaQICDRgtC10LzQv9C10YDQsNGC0YPRgNCwICDihpIgINGF0L7Qu9C+0LTQvdGWINC30L7RgNGWPC90ZXh0Pjx0ZXh0IHg9IjE2IiB5PSIxNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiIHRyYW5zZm9ybT0icm90YXRlKC05MCAxNiAxNDApIj7QodCy0ZbRgtC90ZbRgdGC0Yw8L3RleHQ+PGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE0MCIgcng9IjE2NSIgcnk9IjE2IiB0cmFuc2Zvcm09InJvdGF0ZSgzNC43IDIwMCAxNDApIiBmaWxsPSIjOTNjNWZkIiBmaWxsLW9wYWNpdHk9IjAuNyIgc3Ryb2tlPSIjMjU2M2ViIi8+PGVsbGlwc2UgY3g9IjMwNSIgY3k9Ijc1IiByeD0iNDUiIHJ5PSIyMiIgZmlsbD0iI2ZjYTVhNSIgZmlsbC1vcGFjaXR5PSIwLjciIHN0cm9rZT0iI2RjMjYyNiIvPjxlbGxpcHNlIGN4PSIxMTUiIGN5PSIyMTIiIHJ4PSI0NSIgcnk9IjE2IiBmaWxsPSIjZTVlN2ViIiBmaWxsLW9wYWNpdHk9IjAuOSIgc3Ryb2tlPSIjNTU1Ii8+PHRleHQgeD0iMTYwIiB5PSIxMTgiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj4xPC90ZXh0Pjx0ZXh0IHg9IjMwMCIgeT0iODIiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj4yPC90ZXh0Pjx0ZXh0IHg9IjExMCIgeT0iMjE5IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+MzwvdGV4dD48L3N2Zz4="
+    ],
+    "explanation": "Білі карлики гарячі, але малі, тому тьмяні: нижній лівий кут діаграми."
+  },
+  {
+    "index": 44,
+    "question": "У якій області діаграми Герцшпрунга–Рассела розташоване Сонце?",
+    "type": "single-choice",
+    "topic": "Зорі та випромінювання",
+    "choices": {
+      "A": "Область 1",
+      "B": "Область 2",
+      "C": "Область 3",
+      "D": "Поза областями"
+    },
+    "correct": "A",
+    "images": [
+      "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0Ij48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZmZiIvPjxsaW5lIHgxPSI1MCIgeTE9IjI2MCIgeDI9IjUwIiB5Mj0iMjAiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjUwIiB5MT0iMjYwIiB4Mj0iMzgwIiB5Mj0iMjYwIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxwb2x5Z29uIHBvaW50cz0iNTAsMTQgNDUsMjYgNTUsMjYiIGZpbGw9IiMzMzMiLz48cG9seWdvbiBwb2ludHM9IjM4NiwyNjAgMzc0LDI1NSAzNzQsMjY1IiBmaWxsPSIjMzMzIi8+PHRleHQgeD0iMjE1IiB5PSIyODgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiPtCz0LDRgNGP0YfRliDQt9C+0YDRliAg4oaQICDRgtC10LzQv9C10YDQsNGC0YPRgNCwICDihpIgINGF0L7Qu9C+0LTQvdGWINC30L7RgNGWPC90ZXh0Pjx0ZXh0IHg9IjE2IiB5PSIxNDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMzMzMiIHRyYW5zZm9ybT0icm90YXRlKC05MCAxNiAxNDApIj7QodCy0ZbRgtC90ZbRgdGC0Yw8L3RleHQ+PGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE0MCIgcng9IjE2NSIgcnk9IjE2IiB0cmFuc2Zvcm09InJvdGF0ZSgzNC43IDIwMCAxNDApIiBmaWxsPSIjOTNjNWZkIiBmaWxsLW9wYWNpdHk9IjAuNyIgc3Ryb2tlPSIjMjU2M2ViIi8+PGVsbGlwc2UgY3g9IjMwNSIgY3k9Ijc1IiByeD0iNDUiIHJ5PSIyMiIgZmlsbD0iI2ZjYTVhNSIgZmlsbC1vcGFjaXR5PSIwLjciIHN0cm9rZT0iI2RjMjYyNiIvPjxlbGxpcHNlIGN4PSIxMTUiIGN5PSIyMTIiIHJ4PSI0NSIgcnk9IjE2IiBmaWxsPSIjZTVlN2ViIiBmaWxsLW9wYWNpdHk9IjAuOSIgc3Ryb2tlPSIjNTU1Ii8+PHRleHQgeD0iMTYwIiB5PSIxMTgiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj4xPC90ZXh0Pjx0ZXh0IHg9IjMwMCIgeT0iODIiIGZvbnQtc2l6ZT0iMjAiIGZvbnQtd2VpZ2h0PSJib2xkIiBmaWxsPSIjMTExIj4yPC90ZXh0Pjx0ZXh0IHg9IjExMCIgeT0iMjE5IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0iIzExMSI+MzwvdGV4dD48L3N2Zz4="
+    ],
+    "explanation": "Сонце — зоря G2 головної послідовності (область 1)."
+  },
+  {
+    "index": 45,
+    "question": "Фокусна відстань об'єктива телескопа 1000 мм, окуляра 25 мм. Яке збільшення дає телескоп? Введіть число.",
+    "type": "short-answer",
+    "topic": "Телескопи",
+    "correct": [
+      "40"
+    ],
+    "explanation": "Γ = F/f = 1000/25 = 40."
+  },
+  {
+    "index": 46,
+    "question": "У скільки разів телескоп з об'єктивом 120 мм збирає більше світла, ніж око з зіницею 6 мм?",
+    "type": "single-choice",
+    "topic": "Телескопи",
+    "choices": {
+      "A": "У 20 разів",
+      "B": "У 120 разів",
+      "C": "У 400 разів",
+      "D": "У 720 разів"
+    },
+    "correct": "C",
+    "format": true,
+    "explanation": "Світло пропорційне площі: [latex]((120/6)^2 = 400)."
+  },
+  {
+    "index": 47,
+    "question": "Роздільна здатність телескопа зростає зі збільшенням діаметра об'єктива.",
+    "type": "true-false",
+    "topic": "Телескопи",
+    "correct": true,
+    "explanation": "Дифракційна межа θ ≈ 1,22·λ/D зменшується, коли D збільшується."
+  },
+  {
+    "index": 48,
+    "question": "У якому монтуванні телескопа одна з осей паралельна осі світу?",
+    "type": "single-choice",
+    "topic": "Телескопи",
+    "choices": {
+      "A": "Азимутальному",
+      "B": "Екваторіальному",
+      "C": "Додсонівському",
+      "D": "У жодному"
+    },
+    "correct": "B",
+    "explanation": "В екваторіальному монтуванні достатньо одного повороту навколо полярної осі, щоб стежити за зорею."
+  },
+  {
+    "index": 49,
+    "question": "Які з наведених планет належать до планет-гігантів?",
+    "type": "multiple-choice",
+    "topic": "Сонячна система",
+    "choices": {
+      "A": "Юпітер",
+      "B": "Марс",
+      "C": "Нептун",
+      "D": "Венера",
+      "E": "Сатурн"
+    },
+    "correct": [
+      "A",
+      "C",
+      "E"
+    ],
+    "explanation": "Гіганти: Юпітер, Сатурн, Уран, Нептун. Марс і Венера — планети земної групи."
+  },
+  {
+    "index": 50,
+    "question": "Співвіднесіть термін з означенням.",
+    "type": "matching-question",
+    "topic": "Сонячна система",
+    "choices": {
+      "A": "Метеороїд",
+      "B": "Метеор",
+      "C": "Метеорит",
+      "D": "Болід"
+    },
+    "matches": {
+      "1": "Малий космічний об'єкт у міжпланетному просторі",
+      "2": "Світіння, що виникає під час вльоту в атмосферу",
+      "3": "Тіло, що впало на поверхню планети",
+      "4": "Дуже яскравий метеор",
+      "5": "Хвіст комети"
+    },
+    "correct": {
+      "A": "1",
+      "B": "2",
+      "C": "3",
+      "D": "4"
+    },
+    "explanation": "Послідовність: метеороїд → метеор → (за наявності залишку) метеорит."
+  },
+  {
+    "index": 51,
+    "question": "Сонячна стала на відстані 1 а.о. дорівнює 1361 Вт/м². Який потік на відстані 4 а.о. у Вт/м²? Округліть до цілого.",
+    "type": "short-answer",
+    "topic": "Сонячна система",
+    "correct": [
+      "85"
+    ],
+    "format": true,
+    "explanation": "Потік спадає як [latex](1/r^2): 1361/16 ≈ 85 Вт/м²."
+  },
+  {
+    "index": 52,
+    "question": "Яка приблизно рівноважна температура Землі без урахування парникового ефекту?",
+    "type": "single-choice",
+    "topic": "Сонячна система",
+    "choices": {
+      "A": "150 К",
+      "B": "255 К",
+      "C": "288 К",
+      "D": "373 К"
+    },
+    "correct": "B",
+    "explanation": "Розрахунок за альбедо 0,3 дає ≈ 255 К (−18 °C); реальна 288 К — через парниковий ефект."
+  },
+  {
+    "index": 53,
+    "question": "Яке явище пояснює межа Роша?",
+    "type": "single-choice",
+    "topic": "Сонячна система",
+    "choices": {
+      "A": "Фази Місяця",
+      "B": "Руйнування супутника приливними силами й походження кілець планет-гігантів",
+      "C": "Прецесію осі Землі",
+      "D": "Утворення метеорних потоків"
+    },
+    "correct": "B",
+    "explanation": "Ближче до межі Роша приливні сили перевищують власну гравітацію супутника."
+  },
+  {
+    "index": 54,
+    "question": "Хвіст комети завжди спрямований у бік від Сонця.",
+    "type": "true-false",
+    "topic": "Сонячна система",
+    "correct": true,
+    "explanation": "Його «здуває» сонячний вітер і тиск світла, тому хвіст не лежить уздовж орбіти."
+  },
+  {
+    "index": 55,
+    "question": "Розташуйте планети за зростанням відстані від Сонця.",
+    "type": "ordering",
+    "topic": "Сонячна система",
+    "choices": {
+      "1": "Юпітер",
+      "2": "Сатурн",
+      "3": "Венера",
+      "4": "Земля",
+      "5": "Марс"
+    },
+    "correct": [
+      "3",
+      "4",
+      "5",
+      "1",
+      "2"
+    ],
+    "explanation": "Венера 0,72 а.о., Земля 1, Марс 1,52, Юпітер 5,2, Сатурн 9,6."
+  },
+  {
+    "index": 56,
+    "question": "Розташуйте шари Сонця від поверхні назовні.",
+    "type": "ordering",
+    "topic": "Сонячна система",
+    "choices": {
+      "1": "Корона",
+      "2": "Фотосфера",
+      "3": "Хромосфера"
+    },
+    "correct": [
+      "2",
+      "3",
+      "1"
+    ],
+    "explanation": "Видима поверхня — фотосфера, над нею хромосфера, найвища — корона."
+  },
+  {
+    "index": 57,
+    "question": "Галактика віддаляється зі швидкістю 3000 км/с. Стала Хаббла 70 км/с на Мпк. Яка відстань до неї в Мпк? Округліть до цілого.",
+    "type": "short-answer",
+    "topic": "Галактики й космологія",
+    "correct": [
+      "43"
+    ],
+    "explanation": "d = v/H = 3000/70 ≈ 43 Мпк."
+  },
+  {
+    "index": 58,
+    "question": "Яка температура реліктового випромінювання?",
+    "type": "single-choice",
+    "topic": "Галактики й космологія",
+    "choices": {
+      "A": "≈ 2,7 К",
+      "B": "≈ 27 К",
+      "C": "≈ 270 К",
+      "D": "≈ 2700 К"
+    },
+    "correct": "A",
+    "explanation": "Це відлуння Великого вибуху, охолоджене розширенням Всесвіту до ≈ 2,7 К."
+  },
+  {
+    "index": 59,
+    "question": "Які типи галактик виділяють за Хабблом?",
+    "type": "multiple-choice",
+    "topic": "Галактики й космологія",
+    "choices": {
+      "A": "Еліптичні",
+      "B": "Спіральні",
+      "C": "Неправильні",
+      "D": "Планетарні"
+    },
+    "correct": [
+      "A",
+      "B",
+      "C"
+    ],
+    "explanation": "Еліптичні, лінзоподібні, спіральні (з перемичкою й без) та неправильні; «планетарні» — не галактики."
+  },
+  {
+    "index": 60,
+    "question": "Прискорене розширення Всесвіту пояснюють дією темної енергії.",
+    "type": "true-false",
+    "topic": "Галактики й космологія",
+    "correct": true,
+    "explanation": "Це загальноприйнята гіпотеза космології; точна природа темної енергії невідома."
+  },
+  {
+    "index": 61,
+    "question": "Оберненою до сталої Хаббла величиною 1/H оцінюють вік Всесвіту. Який порядок має 1/H при H = 70 км/с на Мпк?",
+    "type": "single-choice",
+    "topic": "Галактики й космологія",
+    "choices": {
+      "A": "≈ 1,4 млрд років",
+      "B": "≈ 14 млрд років",
+      "C": "≈ 140 млрд років",
+      "D": "≈ 1,4 трлн років"
+    },
+    "correct": "B",
+    "explanation": "1/H ≈ 4,4·10¹⁷ с ≈ 14 млрд років."
+  },
+  {
+    "index": 62,
+    "question": "Чумацький Шлях є еліптичною галактикою.",
+    "type": "true-false",
+    "topic": "Галактики й космологія",
+    "correct": false,
+    "explanation": "Наша Галактика — спіральна, з перемичкою."
+  }
+]
